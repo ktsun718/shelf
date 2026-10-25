@@ -1,73 +1,95 @@
-// Optional cloud sync through Supabase (free tier). Data stays usable
-// offline; changes are pushed whenever a connection is available.
+// Talks to your private Cloudflare helper: cloud sync + movie look-ups.
+// The app works offline; edits are pushed whenever you're signed in and online.
 import * as store from './store.js';
-import { SUPABASE_URL, SUPABASE_KEY } from '../config.js';
+import { API_URL } from '../config.js';
 
-const TABLE = 'shelf_records';
-const LOCAL_CFG = 'shelf.cloud';
-let client = null;
-let user = null;
+const TOKEN_KEY = 'shelf.token';
+let token = null;
+try { token = localStorage.getItem(TOKEN_KEY); } catch {}
 let status = 'off'; // off | signed-out | syncing | synced | error
 let lastError = '';
 const listeners = new Set();
 
-export function cloudConfig() {
-  let local = {};
-  try { local = JSON.parse(localStorage.getItem(LOCAL_CFG) || '{}'); } catch {}
-  return { url: SUPABASE_URL || local.url || '', key: SUPABASE_KEY || local.key || '', fromFile: !!SUPABASE_URL };
-}
-
-export function saveCloudConfig(url, key) {
-  try { localStorage.setItem(LOCAL_CFG, JSON.stringify({ url: url.trim(), key: key.trim() })); } catch {}
-}
-
-export const getStatus = () => ({ status, user, error: lastError, configured: !!client });
+const base = () => (API_URL || '').replace(/\/+$/, '');
+export const configured = () => !!base();
+export const signedIn = () => !!token;
+export const getStatus = () => ({ status, error: lastError, configured: configured(), signedIn: !!token });
 export function onStatus(fn) { listeners.add(fn); return () => listeners.delete(fn); }
 function setStatus(s, err = '') { status = s; lastError = err; listeners.forEach((fn) => fn(getStatus())); }
 
-export async function initCloud() {
-  const { url, key } = cloudConfig();
-  if (!url || !key) { client = null; setStatus('off'); return; }
-  try {
-    const { createClient } = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/+esm');
-    client = createClient(url, key, { auth: { persistSession: true, autoRefreshToken: true, storageKey: 'shelf.auth' } });
-    const { data } = await client.auth.getSession();
-    user = data.session?.user || null;
-    client.auth.onAuthStateChange((_event, session) => {
-      const was = user?.id;
-      user = session?.user || null;
-      if (!user) setStatus('signed-out');
-      else if (user.id !== was) syncNow();
-    });
-    if (user) syncNow(); else setStatus('signed-out');
-  } catch (e) {
-    client = null;
-    setStatus('error', 'Could not reach Supabase — check the URL and key.');
+function setToken(t) {
+  token = t;
+  try { t ? localStorage.setItem(TOKEN_KEY, t) : localStorage.removeItem(TOKEN_KEY); } catch {}
+}
+
+async function call(path, { method = 'GET', body, auth = true } = {}) {
+  if (!configured()) throw new Error('Cloud isn’t set up yet');
+  const headers = { accept: 'application/json' };
+  if (body) headers['content-type'] = 'application/json';
+  if (auth) {
+    if (!token) throw new Error('Sign in first (Settings → Cloud)');
+    headers.authorization = `Bearer ${token}`;
   }
+  let r;
+  try {
+    r = await fetch(base() + path, { method, headers, body: body ? JSON.stringify(body) : undefined, credentials: 'omit', cache: 'no-store' });
+  } catch {
+    throw new Error('You seem to be offline');
+  }
+  let data = {};
+  try { data = await r.json(); } catch {}
+  if (r.status === 401 && auth) {
+    setToken(null);
+    setStatus('signed-out', 'Your session ended — please sign in again.');
+  }
+  if (!r.ok) throw new Error(data.error || `Request failed (${r.status})`);
+  return data;
 }
 
-export async function signIn(email, password) {
-  const { error } = await client.auth.signInWithPassword({ email, password });
-  if (error) throw error;
+// Used by api.js for TMDB look-ups.
+export const apiFetch = (path) => call(path);
+
+export const authStatus = () => call('/auth/status', { auth: false });
+
+export async function setupPassword(code, password) {
+  const d = await call('/auth/setup', { method: 'POST', body: { code, password }, auth: false });
+  setToken(d.token);
+  syncNow();
 }
 
-export async function signUp(email, password) {
-  const { data, error } = await client.auth.signUp({ email, password });
-  if (error) throw error;
-  return !!data.session; // false means "check your email to confirm"
+export async function signIn(password) {
+  const d = await call('/auth/login', { method: 'POST', body: { password }, auth: false });
+  setToken(d.token);
+  syncNow();
 }
 
-export async function signOut() {
-  await client.auth.signOut();
-  user = null;
+export function signOut() {
+  setToken(null);
   setStatus('signed-out');
+}
+
+// Invalidates every device's session, including this one.
+export async function signOutEverywhere() {
+  await call('/auth/logout-all', { method: 'POST' });
+  signOut();
+}
+
+export async function changePassword(current, next) {
+  const d = await call('/auth/password', { method: 'POST', body: { current, next } });
+  setToken(d.token);
+}
+
+export function initCloud() {
+  if (!configured()) { setStatus('off'); return; }
+  if (!token) { setStatus('signed-out'); return; }
+  syncNow();
 }
 
 let running = null;
 let again = false;
 
 export function syncNow() {
-  if (!client || !user) return Promise.resolve();
+  if (!configured() || !token) return Promise.resolve();
   if (running) { again = true; return running; }
   running = doSync().finally(() => {
     running = null;
@@ -79,36 +101,34 @@ export function syncNow() {
 async function doSync() {
   setStatus('syncing');
   try {
-    // 1. pull everything changed since last time (5 s overlap to be safe)
+    // 1. pull what changed elsewhere (5 s overlap to be safe)
     const since = store.lastPull();
+    const from = since ? new Date(new Date(since).getTime() - 5000).toISOString() : '';
+    let cursor = from;
+    let after = '';
     let newest = since;
-    for (let from = 0; ; from += 1000) {
-      let q = client.from(TABLE).select('id,data,updated_at').order('updated_at').range(from, from + 999);
-      if (since) q = q.gte('updated_at', new Date(new Date(since).getTime() - 5000).toISOString());
-      const { data, error } = await q;
-      if (error) throw error;
-      if (data.length) {
-        store.mergeRemote(data);
-        newest = data[data.length - 1].updated_at;
+    for (let page = 0; page < 50; page++) {
+      const d = await call(`/sync?since=${encodeURIComponent(cursor)}&after=${encodeURIComponent(after)}`);
+      if (d.rows.length) {
+        store.mergeRemote(d.rows.map((r) => ({ id: r.id, data: JSON.parse(r.data), updated_at: r.updated_at })));
+        const last = d.rows[d.rows.length - 1];
+        newest = last.updated_at;
+        cursor = last.updated_at;
+        after = last.id;
       }
-      if (data.length < 1000) break;
+      if (!d.more) break;
     }
-    // 2. push local changes
+    // 2. push local edits
     const dirty = store.dirtyRecords();
-    for (let i = 0; i < dirty.length; i += 200) {
-      const chunk = dirty.slice(i, i + 200);
-      const rows = chunk.map((r) => ({ id: r.id, user_id: user.id, data: r }));
-      const { error } = await client.from(TABLE).upsert(rows, { onConflict: 'user_id,id' });
-      if (error) throw error;
+    for (let i = 0; i < dirty.length; i += 100) {
+      const chunk = dirty.slice(i, i + 100);
+      await call('/sync', { method: 'POST', body: { records: chunk } });
       store.clearDirty(chunk);
     }
     if (newest) store.setLastPull(newest);
     setStatus('synced');
   } catch (e) {
-    const msg = String(e.message || e);
-    setStatus('error', /relation|does not exist|schema cache/i.test(msg)
-      ? 'The shelf_records table is missing — run the setup SQL in Supabase.'
-      : msg);
+    if (token) setStatus('error', e.message);
   }
 }
 
@@ -122,4 +142,5 @@ document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible') syncNow();
   else store.flush();
 });
+addEventListener('online', () => syncNow());
 setInterval(() => { if (document.visibilityState === 'visible') syncNow(); }, 60000);

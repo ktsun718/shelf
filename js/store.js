@@ -83,7 +83,7 @@ export const groupsOf = (id) => groups().filter((g) => g.members?.includes(id));
 export function settings() {
   const s = db.records.settings || {};
   return {
-    tmdbKey: '', omdbKey: '',
+    showWishScores: false,
     ...s,
     categories: { ...DEFAULT_CATEGORIES, ...(s.categories || {}) },
   };

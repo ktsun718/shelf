@@ -56,7 +56,11 @@ function render(hash, { keepScroll = false } = {}) {
   let navKey = 'home';
   html.classList.toggle('on-home', !a);
   if (!a) cleanup = renderHome(view);
-  else if (a === 'lib') { renderLibrary(view, b || 'all', query); navKey = b || 'all'; }
+  else if (a === 'lib') {
+    const kind = ['movie', 'tv', 'book'].includes(b) ? b : 'all';
+    cleanup = renderLibrary(view, kind, query);
+    navKey = kind;
+  }
   else if (a === 'item') { renderDetail(view, b); navKey = ''; }
   else if (a === 'collections') { renderCollections(view); navKey = 'collections'; }
   else if (a === 'group') { renderGroup(view, b); navKey = 'collections'; }
@@ -64,6 +68,7 @@ function render(hash, { keepScroll = false } = {}) {
   else { location.replace('#/'); return; }
 
   document.querySelectorAll('[data-nav]').forEach((n) => n.classList.toggle('active', n.dataset.nav === navKey));
+  placeBlob();
   if (!keepScroll) {
     const y = a === 'item' || a === 'group' ? 0 : scrollMemory.get(hash) || 0;
     window.scrollTo(0, y);
@@ -113,7 +118,7 @@ const inViewport = (el) => {
 
 // Before navigating from a poster card, name it so it morphs into the big poster.
 document.addEventListener('click', (e) => {
-  const link = e.target.closest('a.card, a.member-link');
+  const link = e.target.closest('a.card, a.member-link, a.wide, a.pick-poster');
   if (!link) return;
   clearNames();
   document.querySelectorAll('.detail-poster').forEach((d) => { d.style.viewTransitionName = 'none'; });
@@ -168,12 +173,8 @@ function onScroll() {
     const y = window.scrollY;
     nav.classList.toggle('solid', y > 24 || !html.classList.contains('on-home'));
     if (reduced) return;
-    const hero = view.querySelector('[data-hero]');
-    if (hero) {
-      const h = hero.offsetHeight;
-      const p = Math.min(1, Math.max(0, y / h));
-      hero.style.setProperty('--p', p.toFixed(4));
-    }
+    const stage = view.querySelector('[data-stage]');
+    if (stage) stage.style.setProperty('--p', Math.min(1, Math.max(0, y / stage.offsetHeight)).toFixed(4));
     view.querySelectorAll('[data-scrub]').forEach((el) => {
       const r = el.getBoundingClientRect();
       const start = innerHeight * 0.9;
@@ -186,7 +187,36 @@ function onScroll() {
   });
 }
 addEventListener('scroll', onScroll, { passive: true });
-addEventListener('resize', () => placePills(document));
+addEventListener('resize', () => { placePills(document); placeBlob(); });
+
+// The glowing pill in the navigation glides to the current section.
+function placeBlob() {
+  const pill = document.querySelector('.nav-pill');
+  const blob = pill?.querySelector('.nav-blob');
+  if (!blob) return;
+  const on = pill.querySelector('a.active');
+  if (!on) { blob.style.opacity = '0'; return; }
+  blob.style.opacity = '1';
+  blob.style.width = `${on.offsetWidth}px`;
+  blob.style.transform = `translateX(${on.offsetLeft}px)`;
+}
+document.fonts?.ready.then(placeBlob);
+if (window.ResizeObserver) new ResizeObserver(placeBlob).observe(document.querySelector('.nav-pill'));
+
+// Posters lean towards the pointer.
+if (matchMedia('(hover: hover)').matches && !reduced) {
+  document.addEventListener('pointermove', (e) => {
+    const t = e.target.closest?.('.card .tilt');
+    if (!t) return;
+    const r = t.getBoundingClientRect();
+    t.style.setProperty('--rx', `${((e.clientY - r.top) / r.height - 0.5) * -10}deg`);
+    t.style.setProperty('--ry', `${((e.clientX - r.left) / r.width - 0.5) * 12}deg`);
+  }, { passive: true });
+  document.addEventListener('pointerout', (e) => {
+    const t = e.target.closest?.('.card .tilt');
+    if (t && !t.contains(e.relatedTarget)) { t.style.removeProperty('--rx'); t.style.removeProperty('--ry'); }
+  });
+}
 
 // Fade-up elements as they enter the screen; count numbers up.
 const io = new IntersectionObserver((entries) => {

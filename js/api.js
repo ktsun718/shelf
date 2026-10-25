@@ -1,8 +1,7 @@
-// Online look-ups: TMDB (movies & TV), OMDb (IMDb / Rotten Tomatoes scores),
+// Online look-ups: TMDB (movies & TV) through your private Cloudflare helper,
 // Open Library + Google Books (books), and OpenCC (Simplified -> Traditional).
-import { settings } from './store.js';
-
-const TMDB = 'https://api.themoviedb.org/3';
+// The TMDB key never reaches the browser: the helper adds it on the server side.
+import { apiFetch } from './sync.js';
 
 export const img = (path, size = 'w500') => (path ? `https://image.tmdb.org/t/p/${size}${path}` : '');
 
@@ -11,26 +10,9 @@ export function sized(url, size) {
   return url && url.includes('image.tmdb.org') ? url.replace(/\/t\/p\/[^/]+\//, `/t/p/${size}/`) : url;
 }
 
-export class NoKeyError extends Error {}
-
 async function tmdb(path, params = {}) {
-  const key = (settings().tmdbKey || '').trim();
-  if (!key) throw new NoKeyError('TMDB key missing');
-  const u = new URL(TMDB + path);
-  const headers = { accept: 'application/json' };
-  // TMDB gives two kinds of key: a short "API key" and a long "Read Access Token".
-  if (key.length > 40) headers.Authorization = `Bearer ${key}`;
-  else u.searchParams.set('api_key', key);
-  for (const [k, v] of Object.entries(params)) if (v != null) u.searchParams.set(k, v);
-  const r = await fetch(u, { headers });
-  if (r.status === 401) throw new Error('TMDB rejected the key — check it in Settings');
-  if (!r.ok) throw new Error(`TMDB error ${r.status}`);
-  return r.json();
-}
-
-export async function testTmdbKey() {
-  await tmdb('/configuration');
-  return true;
+  const qs = new URLSearchParams(Object.entries(params).filter(([, v]) => v != null)).toString();
+  return apiFetch(`/tmdb${path}${qs ? `?${qs}` : ''}`);
 }
 
 // ---------- Chinese text ----------
@@ -40,6 +22,8 @@ function loadOpenCC() {
   openccReady ||= new Promise((resolve, reject) => {
     const s = document.createElement('script');
     s.src = 'https://cdn.jsdelivr.net/npm/opencc-js@1.4.2/dist/umd/full.js';
+    s.integrity = 'sha384-cKTJQkVHLwFA1XQATuNYZWw3nqczFzkXaVXvA0RLP8DmLDj33hR0ec2v4BNkJeFN';
+    s.crossOrigin = 'anonymous';
     s.onload = () => resolve(window.OpenCC);
     s.onerror = reject;
     document.head.appendChild(s);
@@ -113,10 +97,10 @@ export async function movieDetails(id) {
     web: { tmdb: round1(d.vote_average) },
     imdbId: d.imdb_id || '',
   };
+  await addOmdb(item);
   const collection = d.belongs_to_collection
     ? { id: d.belongs_to_collection.id, name: d.belongs_to_collection.name }
     : null;
-  await addOmdb(item);
   return { item, collection };
 }
 
@@ -204,17 +188,14 @@ export async function collectionDetails(id) {
   };
 }
 
+// IMDb / Rotten Tomatoes scores, only if an OMDb key was added to the helper.
 async function addOmdb(item) {
-  const key = (settings().omdbKey || '').trim();
-  if (!key || !item.imdbId) return;
+  if (!item.imdbId) return;
   try {
-    const r = await fetch(`https://www.omdbapi.com/?i=${item.imdbId}&apikey=${encodeURIComponent(key)}`);
-    const d = await r.json();
-    if (d.Response === 'False') return;
-    if (d.imdbRating && d.imdbRating !== 'N/A') item.web.imdb = d.imdbRating;
-    const rt = (d.Ratings || []).find((x) => x.Source === 'Rotten Tomatoes');
-    if (rt) item.web.rt = rt.Value;
-  } catch { /* scores are a bonus; ignore failures */ }
+    const d = await apiFetch(`/omdb/${encodeURIComponent(item.imdbId)}`);
+    if (d.imdb) item.web.imdb = d.imdb;
+    if (d.rt) item.web.rt = d.rt;
+  } catch { /* scores are a bonus */ }
 }
 
 export const details = (kind, id) => (kind === 'tv' ? tvDetails(id) : movieDetails(id));

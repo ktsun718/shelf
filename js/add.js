@@ -1,8 +1,9 @@
 // "Add a title" sheet (search online or type it in) and the edit form.
 import * as store from './store.js';
 import * as api from './api.js';
+import * as sync from './sync.js';
 import {
-  bi, esc, plain, KIND, icon, statusLabel, segmented, setSeg, placePills, openSheet, toast, debounce, shrinkImage,
+  bi, esc, plain, KIND, icon, statusLabel, segmented, setSeg, placePills, openSheet, toast, debounce, shrinkImage, safeUrl,
 } from './ui.js';
 
 let lastTab = 'screen';
@@ -24,14 +25,16 @@ export function openAdd(tab = lastTab) {
     lastTab = t;
     setSeg(root.querySelector('[data-seg="addtab"]'), t);
     if (t === 'manual') { pane.innerHTML = ''; pane.appendChild(editorForm(null, s)); return; }
-    const noKey = t === 'screen' && !store.settings().tmdbKey;
+    const noKey = t === 'screen' && !sync.signedIn();
     pane.innerHTML = noKey ? `<div class="notice">
-        <h3>Connect TMDB to search movies & TV</h3>
-        <p class="muted">TMDB is a free movie database. With a free key, Shelf fills in posters, descriptions, Hong Kong titles, seasons and online scores for you. It takes about 3 minutes.</p>
-        <div class="notice-actions"><a class="btn btn-light" href="#/settings" data-close>Set it up</a><button class="btn btn-glass" data-go-manual>Type it in instead</button></div>
+        <h3>${sync.configured() ? 'Sign in to search movies & TV' : 'Movie & TV search is almost ready'}</h3>
+        <p class="muted">${sync.configured()
+          ? 'Movie look-ups go through your private Cloudflare helper, so they need your password once on each device.'
+          : 'It switches on once your free Cloudflare account is connected. Meanwhile you can type titles in, or search books.'}</p>
+        <div class="notice-actions">${sync.configured() ? '<a class="btn btn-light" href="#/settings" data-close>Sign in</a>' : ''}<button class="btn btn-glass" data-go-manual>Type it in instead</button></div>
       </div>`
-      : `<label class="search-field big">${icon.search}<input type="search" placeholder="${t === 'book' ? 'Search books by title or author…' : 'Search movies and TV shows…'}" autocomplete="off" data-q></label>
-         <div class="results" data-results><p class="muted hint">${t === 'book' ? 'Tip: Chinese titles work too, e.g. 三體' : 'Tip: try “Breaking Bad” or “The Dark Knight”'}</p></div>`;
+      : `<label class="search-field big">${icon.search}<input type="search" placeholder="${t === 'book' ? 'Search books by title or author…' : 'Search movies and TV shows…'}" autocomplete="off" maxlength="120" data-q></label>
+         <div class="results" data-results><p class="muted hint">${t === 'book' ? 'Tip: Chinese titles work too, e.g. 三體' : 'Tip: try “Breaking Bad” or “潛行凶間”'}</p></div>`;
     pane.querySelector('[data-close]')?.addEventListener('click', () => s.close());
     pane.querySelector('[data-go-manual]')?.addEventListener('click', () => show('manual'));
     const input = pane.querySelector('[data-q]');
@@ -78,9 +81,9 @@ export function openAdd(tab = lastTab) {
       const k = item.kind;
       pickView.innerHTML = `<button class="back-link" data-back>${icon.back}<span>Results</span></button>
         <div class="pick">
-          <div class="pick-poster">${item.poster ? `<img src="${esc(item.poster)}" alt="" onload="this.classList.add('ok')">` : ''}</div>
+          <div class="pick-poster">${safeUrl(item.poster) ? `<img src="${esc(item.poster)}" alt="">` : ''}</div>
           <div class="pick-info">
-            <p class="eyebrow">${KIND[k]}${item.year ? ` · ${item.year}` : ''}${item.runtime ? ` · ${item.runtime} min` : ''}${item.seasons ? ` · ${item.seasons.filter((x) => x.n > 0).length} seasons` : ''}</p>
+            <p class="eyebrow">${KIND[k]}${item.year ? ` · ${esc(item.year)}` : ''}${item.runtime ? ` · ${item.runtime} min` : ''}${item.seasons ? ` · ${item.seasons.filter((x) => x.n > 0).length} seasons` : ''}</p>
             <h2>${bi(item.title)}</h2>
             ${item.title.zh ? `<p class="muted">${esc(item.title.zh)}</p>` : ''}
             ${item.people?.names?.length ? `<p class="muted">${esc(item.people.label)} ${esc(item.people.names.join(', '))}</p>` : ''}
@@ -150,7 +153,7 @@ function skeleton() {
 function resultCard(r, i) {
   const sub = [r.kind === 'book' ? (r.authors || []).slice(0, 2).join(', ') : KIND[r.kind], r.year].filter(Boolean).join(' · ');
   return `<button class="result" data-pick="${i}" style="--i:${i}">
-    <div class="r-poster">${r.poster ? `<img src="${esc(r.poster)}" alt="" loading="lazy" onload="this.classList.add('ok')" onerror="this.remove()">` : `<span>${esc(r.title)}</span>`}</div>
+    <div class="r-poster"><span>${esc(r.title)}</span>${safeUrl(r.poster) ? `<img src="${esc(r.poster)}" alt="" loading="lazy">` : ''}</div>
     <div class="r-title">${esc(r.title)}</div>
     <div class="r-sub muted">${esc(sub)}</div>
   </button>`;
@@ -198,7 +201,7 @@ function editorForm(item, sheet) {
     <div class="field">
       <span>Poster</span>
       <div class="poster-input">
-        <div class="pi-preview">${it.poster ? `<img src="${esc(it.poster)}" alt="">` : ''}</div>
+        <div class="pi-preview">${safeUrl(it.poster) ? `<img src="${esc(it.poster)}" alt="">` : ''}</div>
         <div class="pi-controls">
           <input name="poster" value="${esc(it.poster?.startsWith('data:') ? '' : it.poster || '')}" placeholder="Paste an image link…">
           <label class="btn btn-glass btn-sm file-btn">Upload a picture<input type="file" accept="image/*" hidden data-file></label>
@@ -221,7 +224,7 @@ function editorForm(item, sheet) {
   const preview = form.querySelector('.pi-preview');
   form.querySelector('[name=poster]').addEventListener('input', debounce((e) => {
     uploaded = '';
-    preview.innerHTML = e.target.value ? `<img src="${esc(e.target.value)}" alt="">` : '';
+    preview.innerHTML = safeUrl(e.target.value) ? `<img src="${esc(e.target.value)}" alt="">` : '';
   }, 300));
   form.querySelector('[data-file]').addEventListener('change', async (e) => {
     const f = e.target.files[0];
@@ -247,8 +250,8 @@ function editorForm(item, sheet) {
     rec.people = { ...(rec.people || {}), label: kind === 'book' ? 'Written by' : kind === 'tv' ? 'Created by' : 'Directed by', names: list(f.get('people')), cast: rec.people?.cast || [] };
     rec.genres = list(f.get('genres'));
     rec.web = { ...(rec.web || {}), imdb: f.get('imdb').trim() || undefined, rt: f.get('rt').trim() || undefined, other: f.get('other').trim() || undefined };
-    rec.poster = uploaded || f.get('poster').trim();
-    rec.backdrop = f.get('backdrop').trim();
+    rec.poster = uploaded || safeUrl(f.get('poster').trim());
+    rec.backdrop = safeUrl(f.get('backdrop').trim());
     if (!item) {
       if (rec.status === 'done') rec.my.date = today();
       const n = Math.min(60, num(f.get('seasons')) || 0);
