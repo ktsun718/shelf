@@ -51,6 +51,8 @@ export const icon = {
   eye: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>',
   calendar: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>',
   play: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l11-6.5z"/></svg>',
+  portrait: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="6.5" y="3" width="11" height="18" rx="2"/></svg>',
+  landscape: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="2.5" y="6" width="19" height="12" rx="2"/></svg>',
   sparkle: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.9 6.1L20 10l-6.1 1.9L12 18l-1.9-6.1L4 10l6.1-1.9z"/></svg>',
 };
 
@@ -220,22 +222,42 @@ export const showWeb = (item) => item.status !== 'wishlist' || store.settings().
 
 export function cardSub(item) {
   const parts = [esc(item.year)];
-  if (myScore(item)) parts.push(`<span class="gold">★ ${myScore(item).toFixed(1)}</span>`);
-  else if (showWeb(item) && webScore(item)) parts.push(webScore(item));
+  if (!myScore(item) && showWeb(item) && webScore(item)) parts.push(webScore(item));
   else if (item.genres?.[0]) parts.push(esc(item.genres[0]));
   return parts.filter(Boolean).join('<i class="dot"></i>');
 }
 
-export function card(item, i = 0) {
+function badges(item) {
   const pill = item.status === 'progress' ? `<span class="pill-on">${statusLabel(item.kind, 'progress')}</span>` : '';
+  const score = myScore(item) ? `<span class="score-chip">★ ${myScore(item).toFixed(1)}</span>` : '';
+  return pill + score;
+}
+
+// Portrait poster: the artwork does the talking; the name slides up on hover.
+export function card(item, i = 0) {
   const glow = safeUrl(sized(item.poster, 'w185'));
-  return `<a class="card" href="#/item/${item.id}" data-id="${item.id}" style="--i:${i}">
+  return `<a class="card" href="#/item/${item.id}" data-id="${item.id}" style="--i:${i}" aria-label="${esc(plain(item.title))}">
     <div class="tilt">
       ${glow ? `<img class="glow" src="${esc(glow)}" alt="" loading="lazy" aria-hidden="true">` : ''}
-      ${posterBox(item)}${pill}
+      ${posterBox(item)}${badges(item)}
+      <div class="cap"><span class="cap-title">${bi(item.title)}</span><span class="cap-sub">${cardSub(item)}</span></div>
     </div>
-    <div class="card-title">${bi(item.title)}</div>
-    <div class="card-sub">${cardSub(item)}</div>
+  </a>`;
+}
+
+// Landscape still: the wide backdrop with the name set over it.
+export function lcard(item, i = 0) {
+  const bg = safeUrl(item.backdrop ? sized(item.backdrop, 'w780') : sized(item.poster, 'w342'));
+  const cover = !item.backdrop && safeUrl(sized(item.poster, 'w185'));
+  return `<a class="lcard" href="#/item/${item.id}" data-id="${item.id}" style="--i:${i};--h:${hue(plain(item.title))}" aria-label="${esc(plain(item.title))}">
+    <div class="lcard-media ${item.backdrop ? '' : 'from-poster'}">${bg ? `<img src="${esc(bg)}" alt="" loading="lazy">` : ''}</div>
+    ${cover ? `<img class="lcard-cover" src="${esc(cover)}" alt="" loading="lazy">` : ''}
+    ${badges(item)}
+    <div class="lcard-copy">
+      <span class="lcard-kind">${KIND[item.kind]}</span>
+      <span class="lcard-title">${bi(item.title)}</span>
+      <span class="lcard-sub">${cardSub(item)}</span>
+    </div>
   </a>`;
 }
 

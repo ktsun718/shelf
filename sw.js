@@ -1,7 +1,7 @@
 // Offline support: the app itself is fetched fresh when online (so updates
 // show up right away) and served from cache when offline. Posters and covers
 // are cached after the first view.
-const APP = 'shelf-app-v2';
+const APP = 'shelf-app-v3';
 const IMG = 'shelf-img-v1';
 const SHELL = ['./', 'index.html', 'styles.css', 'config.js', 'js/app.js', 'js/store.js', 'js/api.js', 'js/sync.js', 'js/ui.js', 'js/views.js', 'js/detail.js', 'js/add.js', 'js/settings.js', 'js/samples.js', 'manifest.webmanifest', 'icons/icon-192.png'];
 

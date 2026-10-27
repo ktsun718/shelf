@@ -1,7 +1,7 @@
 // Settings: cloud account, display options, rating categories, backup.
 import * as store from './store.js';
 import * as sync from './sync.js';
-import { loadSamples } from './samples.js';
+import { loadStarter } from './samples.js';
 import { esc, icon, toast, confirmSheet } from './ui.js';
 
 export function renderSettings(root) {
@@ -39,7 +39,8 @@ export function renderSettings(root) {
       <div class="btn-grid">
         <button class="btn btn-glass btn-sm" data-export>Download a backup</button>
         <label class="btn btn-glass btn-sm file-btn">Restore a backup<input type="file" accept="application/json,.json" hidden data-import></label>
-        ${store.hasSamples() ? '<button class="btn btn-glass btn-sm" data-rm-samples>Remove sample titles</button>' : '<button class="btn btn-glass btn-sm" data-samples>Load sample titles</button>'}
+        ${store.hasSamples() ? '<button class="btn btn-glass btn-sm" data-rm-samples>Remove sample titles</button>' : ''}
+        <button class="btn btn-glass btn-sm" data-samples>Restore my starter list</button>
       </div>
     </div>
 
@@ -98,7 +99,7 @@ export function renderSettings(root) {
     if (f.size > 20 * 1024 * 1024) { toast('That file is too big to be a Shelf backup'); return; }
     try { toast(`Restored ${store.importAll(await f.text())} records`); } catch (err) { toast(err.message); }
   };
-  root.querySelector('[data-samples]')?.addEventListener('click', () => { loadSamples(); toast('Samples added'); location.hash = '#/'; });
+  root.querySelector('[data-samples]')?.addEventListener('click', () => { const n = loadStarter({ force: true }); toast(n ? `Restored ${n} titles` : 'Everything from your list is already here'); });
   root.querySelector('[data-rm-samples]')?.addEventListener('click', async () => {
     if (await confirmSheet('Remove sample titles?', 'Only the samples are removed. Anything you added stays.')) {
       store.removeSamples();

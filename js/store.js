@@ -57,6 +57,18 @@ export function put(rec, { silent = true } = {}) {
   return rec;
 }
 
+// Adds records keeping their own timestamps (used for the starter list).
+export function seed(recs) {
+  for (const r of recs) {
+    if (db.records[r.id]) continue;
+    db.records[r.id] = r;
+    db.dirty[r.id] = 1;
+  }
+  persist();
+  edited();
+  emit('local');
+}
+
 export function putMany(recs) {
   recs.forEach((r) => put(r));
   emit('local');

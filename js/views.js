@@ -2,7 +2,7 @@
 import * as store from './store.js';
 import { sized } from './api.js';
 import {
-  bi, esc, plain, card, wideCard, groupCard, icon, KIND, KIND_PLURAL, statusLabel, segmented, setSeg, placePills,
+  bi, esc, plain, card, lcard, wideCard, groupCard, icon, KIND, KIND_PLURAL, statusLabel, segmented, setSeg, placePills,
   stars, myScore, posterBox, openSheet, confirmSheet, toast, debounce, safeUrl, showWeb, webScore,
 } from './ui.js';
 
@@ -20,6 +20,9 @@ export function renderHome(root) {
   const done = all.filter((i) => i.status === 'done');
   const wish = all.filter((i) => i.status === 'wishlist');
   const hours = Math.round(minutesWatched(all) / 60);
+  const films = done.filter((i) => i.kind === 'movie').length;
+  const series = all.filter((i) => i.kind === 'tv' && i.status !== 'wishlist').length;
+  const books = done.filter((i) => i.kind === 'book').length;
   const picks = shuffle(all.filter((i) => i.status !== 'done'));
 
   root.innerHTML = `
@@ -29,23 +32,21 @@ export function renderHome(root) {
     <div class="stage-copy wrap">
       <p class="eyebrow fade-up" style="--d:0"><i class="live-dot"></i>${greeting()}</p>
       <h1 class="stage-title fade-up" style="--d:1">What’s on <em>tonight</em>?</h1>
-      <p class="stage-lead fade-up" style="--d:2">${wish.length} waiting on your wishlist · ${done.length} finished</p>
+      <p class="stage-lead fade-up" style="--d:2">Pick something — or let your shelf pick for you.</p>
       ${picks.length ? `<div class="pick-card fade-up" style="--d:3" data-pick>${pickCard(picks[0])}</div>` : `<div class="fade-up" style="--d:3"><button class="btn btn-light btn-lg" data-action="add">${icon.plus}<span>Add a title</span></button></div>`}
     </div>
   </section>
 
-  <section class="intro wrap">
-    <h2 class="scrub" data-scrub>${words('Everything you’ve watched. Everything you’ve read. And everything you will.')}</h2>
-    <div class="stats">
-      ${stat(done.filter((i) => i.kind !== 'book').length, 'Movies & shows watched', 'sunset')}
-      ${stat(done.filter((i) => i.kind === 'book').length, 'Books read', 'aurora')}
-      ${stat(wish.length, 'On your wishlist', 'violet')}
-      ${stat(hours, 'Hours of screen time', 'gold')}
-    </div>
+  <section class="ledger wrap">
+    <p class="eyebrow reveal"><i class="live-dot"></i>Your shelf so far</p>
+    <h2 class="ledger-line reveal">You’ve lived through ${num(films, 'film', 'sunset')}, ${num(series, 'series', 'aurora', 'series')}<br>and ${num(books, 'book', 'gold')}.</h2>
+    <p class="ledger-sub reveal">That’s roughly <b data-count="${hours}">0</b> hours spent in other worlds.</p>
+    ${wish.length ? `<a class="ledger-wish reveal" href="#/lib/all?status=wishlist">${wish.length} more waiting on your wishlist ${icon.right}</a>` : ''}
   </section>
 
   <div class="wrap home-filter reveal">
     ${segmented('home', [['all', 'Everything'], ['done', 'Finished'], ['wishlist', 'Wishlist']], homeFilter)}
+    ${segmented('shape', [['portrait', `${icon.portrait}<span>Portrait</span>`, 'aria-label="Portrait posters"'], ['landscape', `${icon.landscape}<span>Landscape</span>`, 'aria-label="Landscape posters"']], shape(), 'icon-seg')}
   </div>
   <div class="home-rows"></div>
   <div class="home-foot wrap reveal">
@@ -55,6 +56,15 @@ export function renderHome(root) {
   const rowsEl = root.querySelector('.home-rows');
   const paintRows = () => { rowsEl.innerHTML = homeRows(all, homeFilter); bindRowArrows(rowsEl); };
   paintRows();
+
+  root.querySelector('[data-seg="shape"]').addEventListener('click', (e) => {
+    const b = e.target.closest('button');
+    if (!b || b.dataset.v === shape()) return;
+    setShape(b.dataset.v);
+    setSeg(b.parentElement, b.dataset.v);
+    rowsEl.classList.add('swap');
+    setTimeout(() => { paintRows(); rowsEl.classList.remove('swap'); window.__reveal?.(rowsEl); }, 220);
+  });
 
   root.querySelector('[data-seg="home"]').addEventListener('click', (e) => {
     const b = e.target.closest('button');
@@ -128,8 +138,12 @@ function stageParallax(root) {
   return () => removeEventListener('pointermove', move);
 }
 
-const words = (s) => s.split(' ').map((w, i) => `<span class="w" style="--w:${i}">${w}</span>`).join(' ');
-const stat = (n, label, tone) => `<div class="stat reveal tone-${tone}"><b data-count="${n}">0</b><span>${label}</span></div>`;
+const num = (n, one, tone, many = `${one}s`) => `<span class="num tone-${tone}"><b data-count="${n}">0</b> ${n === 1 ? one : many}</span>`;
+
+// Portrait posters or landscape stills — remembered per device.
+export function shape() { try { return localStorage.getItem('shelf.shape') || 'portrait'; } catch { return 'portrait'; } }
+export function setShape(v) { try { localStorage.setItem('shelf.shape', v); } catch {} }
+export const tile = (it, i) => (shape() === 'landscape' ? lcard(it, i) : card(it, i));
 
 function minutesWatched(all) {
   let m = 0;
@@ -149,7 +163,7 @@ function homeRows(all, filter) {
   let html = '';
   if (filter !== 'wishlist') {
     const cont = of(null, 'progress');
-    if (cont.length) html += row('Continue <em>where you left off</em>', cont.map(wideCard), '#/lib/all?status=progress', 'wides');
+    if (cont.length) html += row('Continue <em>where you left off</em>', cont.map(wideCard), '#/lib/all?status=progress', 'wides', cont.length);
   }
   const rows = [];
   if (filter === 'all') {
@@ -161,15 +175,17 @@ function homeRows(all, filter) {
   } else {
     rows.push(['Movies <em>to watch</em>', of('movie', 'wishlist'), '#/lib/movie?status=wishlist'], ['Shows <em>to watch</em>', of('tv', 'wishlist'), '#/lib/tv?status=wishlist'], ['Books <em>to read</em>', of('book', 'wishlist'), '#/lib/book?status=wishlist']);
   }
-  html += rows.filter(([, list]) => list.length).map(([title, list, link]) => row(title, list.map(card), link)).join('');
+  const cls = shape() === 'landscape' ? 'land' : 'port';
+  html += rows.filter(([, list]) => list.length).map(([title, list, link]) => row(title, list.map(tile), link, cls, list.length)).join('');
   const gs = store.groups();
-  if (filter === 'all' && gs.length) html += row('<em>Collections</em>', gs.map(groupCard), '#/collections', 'groups');
+  if (filter === 'all' && gs.length) html += row('<em>Collections</em>', gs.map(groupCard), '#/collections', 'groups', gs.length);
   return html || '<p class="empty wrap">Nothing here yet.</p>';
 }
 
-function row(title, cards, link, cls = '') {
+// The whole heading is a link into that section.
+function row(title, cards, link, cls = '', count = 0) {
   return `<section class="row reveal ${cls}">
-    <div class="row-head wrap"><h3>${title}</h3>${link ? `<a class="see-all" href="${link}">See all ${icon.right}</a>` : ''}</div>
+    <div class="row-head wrap"><a class="row-link" href="${link}"><h3>${title}</h3><span class="row-count">${count}</span><span class="row-go">${icon.right}</span></a></div>
     <div class="row-scroller">
       <div class="row-track">${cards.join('')}</div>
       <button class="row-arrow prev" aria-label="Scroll left">${icon.back}</button>
@@ -203,7 +219,7 @@ function renderWelcome(root) {
       <p class="lead fade-up" style="--d:2">The movies, shows and books you love — and the ones you’re waiting for. Rated your way, season by season.</p>
       <div class="welcome-actions fade-up" style="--d:3">
         <button class="btn btn-light btn-lg" data-action="add">${icon.plus}<span>Add your first title</span></button>
-        <button class="btn btn-glass btn-lg" data-action="samples">Explore with samples</button>
+        <button class="btn btn-glass btn-lg" data-action="samples">Load my list</button>
       </div>
     </div>
   </section>`;
@@ -277,7 +293,7 @@ export function renderLibrary(root, kind, query) {
       return;
     }
     if (st.view === 'spot') { spotCleanup = renderSpotlight(body, items); return; }
-    body.innerHTML = `<div class="grid ${animate ? '' : 'no-anim'}">${items.map((it, i) => card(it, Math.min(i, 24))).join('')}</div>`;
+    body.innerHTML = `<div class="grid ${shape() === 'landscape' ? 'land' : ''} ${animate ? '' : 'no-anim'}">${items.map((it, i) => tile(it, Math.min(i, 24))).join('')}</div>`;
   };
   paint();
 

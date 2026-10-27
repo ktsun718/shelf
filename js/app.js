@@ -5,7 +5,7 @@ import { renderHome, renderLibrary, renderCollections, renderGroup } from './vie
 import { renderDetail } from './detail.js';
 import { renderSettings } from './settings.js';
 import { openAdd } from './add.js';
-import { loadSamples } from './samples.js';
+import { loadStarter } from './samples.js';
 import { placePills, toast } from './ui.js';
 
 const view = document.getElementById('view');
@@ -118,7 +118,7 @@ const inViewport = (el) => {
 
 // Before navigating from a poster card, name it so it morphs into the big poster.
 document.addEventListener('click', (e) => {
-  const link = e.target.closest('a.card, a.member-link, a.wide, a.pick-poster');
+  const link = e.target.closest('a.card, a.lcard, a.member-link, a.wide, a.pick-poster');
   if (!link) return;
   clearNames();
   document.querySelectorAll('.detail-poster').forEach((d) => { d.style.viewTransitionName = 'none'; });
@@ -137,7 +137,7 @@ document.addEventListener('click', (e) => {
   const act = a.dataset.action;
   if (act === 'add') openAdd();
   if (act === 'lang') toggleLang();
-  if (act === 'samples') { loadSamples(); toast('Sample titles added — remove them anytime in Settings'); render(current, { keepScroll: false }); }
+  if (act === 'samples') { const n = loadStarter({ force: true }); toast(n ? `Added ${n} titles from your list` : 'Your list is already here'); render(current, { keepScroll: false }); }
 });
 
 document.addEventListener('keydown', (e) => {
@@ -256,6 +256,7 @@ sync.onStatus(({ status }) => {
 
 addEventListener('hashchange', navigate);
 current = location.hash || '#/';
+loadStarter(); // once per device
 render(current);
 requestAnimationFrame(() => html.classList.add('ready'));
 sync.initCloud();
