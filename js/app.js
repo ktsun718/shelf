@@ -118,7 +118,7 @@ const inViewport = (el) => {
 
 // Before navigating from a poster card, name it so it morphs into the big poster.
 document.addEventListener('click', (e) => {
-  const link = e.target.closest('a.card, a.lcard, a.member-link, a.wide, a.pick-poster');
+  const link = e.target.closest('a.card, a.member-link, a.wide, a.pick-poster');
   if (!link) return;
   clearNames();
   document.querySelectorAll('.detail-poster').forEach((d) => { d.style.viewTransitionName = 'none'; });

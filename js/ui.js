@@ -28,7 +28,7 @@ export const kindDot = (kind) => `<i class="kd kd-${kind}" aria-hidden="true"></
 export function statusLabel(kind, s) {
   const book = kind === 'book';
   return {
-    wishlist: book ? 'To read' : 'To watch',
+    wishlist: book ? 'Want to read' : 'Wishlist',
     progress: book ? 'Reading' : 'Watching',
     done: book ? 'Read' : 'Watched',
   }[s];
@@ -58,8 +58,6 @@ export const icon = {
   calendar: SV('<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>'),
   bookmark: SV('<path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>'),
   play: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l11-6.5z"/></svg>',
-  portrait: SV('<rect x="6" y="3" width="12" height="18" rx="2"/>'),
-  landscape: SV('<rect x="2" y="6" width="20" height="12" rx="2"/>'),
   star: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.4l2.95 6.2 6.8.83-5.02 4.68 1.32 6.74L12 17.5l-6.05 3.35 1.32-6.74L2.25 9.43l6.8-.83z"/></svg>',
 };
 
@@ -239,23 +237,7 @@ export function card(item, i = 0) {
   </a>`;
 }
 
-// Landscape still: the wide backdrop with the name set over it.
-export function lcard(item, i = 0) {
-  const bg = safeUrl(item.backdrop ? sized(item.backdrop, 'w780') : sized(item.poster, 'w342'));
-  const cover = !item.backdrop && safeUrl(sized(item.poster, 'w185'));
-  return `<a class="lcard" href="#/item/${item.id}" data-id="${item.id}" style="--i:${i};--h:${hue(plain(item.title))}" aria-label="${esc(plain(item.title))}">
-    <div class="lcard-media ${item.backdrop ? '' : 'from-poster'}">${bg ? `<img src="${esc(bg)}" alt="" loading="lazy">` : ''}</div>
-    ${cover ? `<img class="lcard-cover" src="${esc(cover)}" alt="" loading="lazy">` : ''}
-    ${badges(item)}
-    <div class="lcard-copy">
-      <span class="lcard-kind">${kindDot(item.kind)}${KIND[item.kind]}</span>
-      <span class="lcard-title">${bi(item.title)}</span>
-      <span class="lcard-sub">${cardSub(item)}</span>
-    </div>
-  </a>`;
-}
-
-// Big landscape card for things in progress.
+// Big wide card for things in progress.
 export function wideCard(item, i = 0) {
   const bg = safeUrl(item.backdrop ? sized(item.backdrop, 'w780') : sized(item.poster, 'w500'));
   const regular = (item.seasons || []).filter((s) => s.n > 0);

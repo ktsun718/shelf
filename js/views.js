@@ -2,7 +2,7 @@
 import * as store from './store.js';
 import { sized } from './api.js';
 import {
-  bi, esc, plain, card, lcard, wideCard, groupCard, icon, KIND, KIND_PLURAL, kindDot, statusLabel, segmented, setSeg, placePills,
+  bi, esc, plain, card, wideCard, groupCard, icon, KIND, KIND_PLURAL, kindDot, statusLabel, segmented, setSeg, placePills,
   stars, myScore, posterBox, openSheet, confirmSheet, toast, debounce, safeUrl, showWeb, webScore,
 } from './ui.js';
 
@@ -44,7 +44,6 @@ export function renderHome(root) {
 
   <div class="wrap home-filter reveal">
     ${segmented('home', [['all', 'Everything'], ['done', 'Finished'], ['wishlist', 'Wishlist']], homeFilter)}
-    ${segmented('shape', [['portrait', `${icon.portrait}<span>Portrait</span>`, 'aria-label="Portrait posters"'], ['landscape', `${icon.landscape}<span>Landscape</span>`, 'aria-label="Landscape posters"']], shape(), 'icon-seg')}
   </div>
   <div class="home-rows"></div>
   <div class="home-foot wrap reveal">
@@ -54,15 +53,6 @@ export function renderHome(root) {
   const rowsEl = root.querySelector('.home-rows');
   const paintRows = () => { rowsEl.innerHTML = homeRows(all, homeFilter); bindRowArrows(rowsEl); };
   paintRows();
-
-  root.querySelector('[data-seg="shape"]').addEventListener('click', (e) => {
-    const b = e.target.closest('button');
-    if (!b || b.dataset.v === shape()) return;
-    setShape(b.dataset.v);
-    setSeg(b.parentElement, b.dataset.v);
-    rowsEl.classList.add('swap');
-    setTimeout(() => { paintRows(); rowsEl.classList.remove('swap'); window.__reveal?.(rowsEl); }, 220);
-  });
 
   root.querySelector('[data-seg="home"]').addEventListener('click', (e) => {
     const b = e.target.closest('button');
@@ -122,11 +112,6 @@ function wallRows(all) {
 
 const num = (n, one, tone, many = `${one}s`) => `<span class="num tone-${tone}"><b data-count="${n}">0</b> ${n === 1 ? one : many}</span>`;
 
-// Portrait posters or landscape stills — remembered per device.
-export function shape() { try { return localStorage.getItem('shelf.shape') || 'portrait'; } catch { return 'portrait'; } }
-export function setShape(v) { try { localStorage.setItem('shelf.shape', v); } catch {} }
-export const tile = (it, i) => (shape() === 'landscape' ? lcard(it, i) : card(it, i));
-
 function minutesWatched(all) {
   let m = 0;
   for (const i of all) {
@@ -157,8 +142,7 @@ function homeRows(all, filter) {
   } else {
     rows.push(['Movies to watch', of('movie', 'wishlist'), '#/lib/movie?status=wishlist'], ['Shows to watch', of('tv', 'wishlist'), '#/lib/tv?status=wishlist'], ['Books to read', of('book', 'wishlist'), '#/lib/book?status=wishlist']);
   }
-  const cls = shape() === 'landscape' ? 'land' : 'port';
-  html += rows.filter(([, list]) => list.length).map(([title, list, link]) => row(title, list.map(tile), link, cls, list.length)).join('');
+  html += rows.filter(([, list]) => list.length).map(([title, list, link]) => row(title, list.map(card), link, 'port', list.length)).join('');
   const gs = store.groups();
   if (filter === 'all' && gs.length) html += row('Collections', gs.map(groupCard), '#/collections', 'groups', gs.length);
   return html || '<p class="empty wrap">Nothing here yet</p>';
@@ -272,7 +256,7 @@ export function renderLibrary(root, kind, query) {
       return;
     }
     if (st.view === 'spot') { spotCleanup = renderSpotlight(body, items); return; }
-    body.innerHTML = `<div class="grid ${shape() === 'landscape' ? 'land' : ''} ${animate ? '' : 'no-anim'}">${items.map((it, i) => tile(it, Math.min(i, 24))).join('')}</div>`;
+    body.innerHTML = `<div class="grid ${animate ? '' : 'no-anim'}">${items.map((it, i) => card(it, Math.min(i, 24))).join('')}</div>`;
   };
   paint();
 
