@@ -46,6 +46,9 @@ export function get(id) {
   return r && !r.deleted ? r : null;
 }
 
+// True for anything this device has ever had, including deleted titles.
+export const known = (id) => !!db.records[id];
+
 export function put(rec, { silent = true } = {}) {
   rec.updatedAt = now();
   rec.addedAt ||= rec.updatedAt;

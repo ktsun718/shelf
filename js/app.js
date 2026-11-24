@@ -173,50 +173,28 @@ function onScroll() {
     const y = window.scrollY;
     nav.classList.toggle('solid', y > 24 || !html.classList.contains('on-home'));
     if (reduced) return;
+    // The poster wall fades out as the numbers come up.
     const stage = view.querySelector('[data-stage]');
-    if (stage) stage.style.setProperty('--p', Math.min(1, Math.max(0, y / stage.offsetHeight)).toFixed(4));
-    view.querySelectorAll('[data-scrub]').forEach((el) => {
-      const r = el.getBoundingClientRect();
-      const start = innerHeight * 0.9;
-      const end = innerHeight * 0.3;
-      const prog = Math.min(1, Math.max(0, (start - r.top) / (start - end)));
-      const ws = el.querySelectorAll('.w');
-      const lit = Math.round(prog * ws.length);
-      ws.forEach((w, i) => w.classList.toggle('lit', i < lit));
-    });
+    if (stage) stage.style.setProperty('--p', Math.min(1, Math.max(0, y / stage.offsetHeight)).toFixed(3));
   });
 }
 addEventListener('scroll', onScroll, { passive: true });
 addEventListener('resize', () => { placePills(document); placeBlob(); });
 
-// The glowing pill in the navigation glides to the current section.
+// The amber line under the navigation glides to the current section.
 function placeBlob() {
   const pill = document.querySelector('.nav-pill');
   const blob = pill?.querySelector('.nav-blob');
   if (!blob) return;
   const on = pill.querySelector('a.active');
   if (!on) { blob.style.opacity = '0'; return; }
+  const pad = parseFloat(getComputedStyle(on).paddingLeft) || 0;
   blob.style.opacity = '1';
-  blob.style.width = `${on.offsetWidth}px`;
-  blob.style.transform = `translateX(${on.offsetLeft}px)`;
+  blob.style.width = `${Math.max(0, on.offsetWidth - pad * 2)}px`;
+  blob.style.transform = `translateX(${on.offsetLeft + pad}px)`;
 }
 document.fonts?.ready.then(placeBlob);
 if (window.ResizeObserver) new ResizeObserver(placeBlob).observe(document.querySelector('.nav-pill'));
-
-// Posters lean towards the pointer.
-if (matchMedia('(hover: hover)').matches && !reduced) {
-  document.addEventListener('pointermove', (e) => {
-    const t = e.target.closest?.('.card .tilt');
-    if (!t) return;
-    const r = t.getBoundingClientRect();
-    t.style.setProperty('--rx', `${((e.clientY - r.top) / r.height - 0.5) * -10}deg`);
-    t.style.setProperty('--ry', `${((e.clientX - r.left) / r.width - 0.5) * 12}deg`);
-  }, { passive: true });
-  document.addEventListener('pointerout', (e) => {
-    const t = e.target.closest?.('.card .tilt');
-    if (t && !t.contains(e.relatedTarget)) { t.style.removeProperty('--rx'); t.style.removeProperty('--ry'); }
-  });
-}
 
 // Fade-up elements as they enter the screen; count numbers up.
 const io = new IntersectionObserver((entries) => {
@@ -237,10 +215,10 @@ window.__reveal = reveal;
 function countUp(el) {
   const target = +el.dataset.count;
   const t0 = performance.now();
-  const dur = 1400;
+  const dur = 900;
   const step = (t) => {
     const k = Math.min(1, (t - t0) / dur);
-    el.textContent = Math.round(target * (1 - Math.pow(1 - k, 4))).toLocaleString();
+    el.textContent = Math.round(target * (1 - Math.pow(1 - k, 3))).toLocaleString();
     if (k < 1) requestAnimationFrame(step);
   };
   requestAnimationFrame(step);

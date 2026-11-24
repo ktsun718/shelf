@@ -3,7 +3,7 @@ import * as store from './store.js';
 import * as api from './api.js';
 import * as sync from './sync.js';
 import {
-  bi, esc, plain, KIND, icon, statusLabel, segmented, setSeg, placePills, openSheet, toast, debounce, shrinkImage, safeUrl,
+  bi, esc, plain, KIND, kindDot, icon, statusLabel, segmented, setSeg, placePills, openSheet, toast, debounce, shrinkImage, safeUrl,
 } from './ui.js';
 
 let lastTab = 'screen';
@@ -33,7 +33,7 @@ export function openAdd(tab = lastTab) {
           : 'It switches on once your free Cloudflare account is connected. Meanwhile you can type titles in, or search books.'}</p>
         <div class="notice-actions">${sync.configured() ? '<a class="btn btn-light" href="#/settings" data-close>Sign in</a>' : ''}<button class="btn btn-glass" data-go-manual>Type it in instead</button></div>
       </div>`
-      : `<label class="search-field big">${icon.search}<input type="search" placeholder="${t === 'book' ? 'Search books by title or author…' : 'Search movies and TV shows…'}" autocomplete="off" maxlength="120" data-q></label>
+      : `<label class="search-field big">${icon.search}<input type="search" placeholder="${t === 'book' ? 'Search books' : 'Search movies and TV'}" aria-label="${t === 'book' ? 'Search books by title or author' : 'Search movies and TV shows'}" autocomplete="off" maxlength="120" data-q></label>
          <div class="results" data-results><p class="muted hint">${t === 'book' ? 'Tip: Chinese titles work too, e.g. 三體' : 'Tip: try “Breaking Bad” or “潛行凶間”'}</p></div>`;
     pane.querySelector('[data-close]')?.addEventListener('click', () => s.close());
     pane.querySelector('[data-go-manual]')?.addEventListener('click', () => show('manual'));
@@ -52,7 +52,7 @@ export function openAdd(tab = lastTab) {
         if (my !== seq) return;
         results.innerHTML = list.length
           ? `<div class="result-grid">${list.map((r, i) => resultCard(r, i)).join('')}</div>`
-          : '<p class="muted hint">No results. You can always type it in yourself.</p>';
+          : '<p class="muted hint">No results. You can type it in yourself.</p>';
         results.querySelectorAll('[data-pick]').forEach((b) => b.addEventListener('click', () => pick(list[+b.dataset.pick])));
       } catch (err) {
         results.innerHTML = `<p class="muted hint">${esc(err.message)}</p>`;
@@ -83,7 +83,7 @@ export function openAdd(tab = lastTab) {
         <div class="pick">
           <div class="pick-poster">${safeUrl(item.poster) ? `<img src="${esc(item.poster)}" alt="">` : ''}</div>
           <div class="pick-info">
-            <p class="eyebrow">${KIND[k]}${item.year ? ` · ${esc(item.year)}` : ''}${item.runtime ? ` · ${item.runtime} min` : ''}${item.seasons ? ` · ${item.seasons.filter((x) => x.n > 0).length} seasons` : ''}</p>
+            <p class="meta-line">${kindDot(k)}<span>${KIND[k]}</span>${item.year ? `<span>${esc(item.year)}</span>` : ''}${item.runtime ? `<span>${item.runtime} min</span>` : ''}${item.seasons ? `<span>${item.seasons.filter((x) => x.n > 0).length} seasons</span>` : ''}</p>
             <h2>${bi(item.title)}</h2>
             ${item.title.zh ? `<p class="muted">${esc(item.title.zh)}</p>` : ''}
             ${item.people?.names?.length ? `<p class="muted">${esc(item.people.label)} ${esc(item.people.names.join(', '))}</p>` : ''}
@@ -203,7 +203,7 @@ function editorForm(item, sheet) {
       <div class="poster-input">
         <div class="pi-preview">${safeUrl(it.poster) ? `<img src="${esc(it.poster)}" alt="">` : ''}</div>
         <div class="pi-controls">
-          <input name="poster" value="${esc(it.poster?.startsWith('data:') ? '' : it.poster || '')}" placeholder="Paste an image link…">
+          <input name="poster" value="${esc(it.poster?.startsWith('data:') ? '' : it.poster || '')}" placeholder="Image link">
           <label class="btn btn-glass btn-sm file-btn">Upload a picture<input type="file" accept="image/*" hidden data-file></label>
         </div>
       </div>

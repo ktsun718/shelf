@@ -2430,21 +2430,927 @@ const RECORDS = [
 }
 ];
 
-// Loads the list once per device, replacing the old demo titles. Returns how many were added.
+// Added 24 Nov 2026: The Matrix and classics everyone should see, on the wishlist.
+// Chinese descriptions written by hand (TMDB's were machine-converted).
+const CLASSICS = [
+ {
+  "id": "tm_m_603",
+  "kind": "movie",
+  "status": "wishlist",
+  "source": {
+   "type": "tmdb",
+   "id": 603
+  },
+  "title": {
+   "en": "The Matrix",
+   "zh": "22世紀殺人網絡"
+  },
+  "originalTitle": "",
+  "overview": {
+   "en": "Set in the 22nd century, The Matrix tells the story of a computer hacker who joins a group of underground insurgents fighting the vast and powerful computers who now rule the earth.",
+   "zh": "電腦駭客尼奧一直覺得世界有點不對勁，直到神秘人墨菲斯向他揭示真相：他所熟悉的現實，原來是機器為囚禁人類而打造的虛擬世界。"
+  },
+  "tagline": "Believe the unbelievable.",
+  "year": "1999",
+  "runtime": 136,
+  "genres": [
+   "Action",
+   "Science Fiction"
+  ],
+  "people": {
+   "label": "Directed by",
+   "names": [
+    "Lana Wachowski",
+    "Lilly Wachowski"
+   ],
+   "cast": [
+    "Keanu Reeves",
+    "Laurence Fishburne",
+    "Carrie-Anne Moss",
+    "Hugo Weaving",
+    "Gloria Foster",
+    "Joe Pantoliano",
+    "Marcus Chong",
+    "Julian Arahanga"
+   ]
+  },
+  "poster": "https://image.tmdb.org/t/p/w500/dXNAPwY7VrqMAo51EKhhCJfaGb5.jpg",
+  "backdrop": "https://image.tmdb.org/t/p/w1280/tlm8UkiQsitc8rSuIAscQDCnP8d.jpg",
+  "web": {
+   "tmdb": 8.3
+  },
+  "imdbId": "tt0133093",
+  "my": {}
+ },
+ {
+  "id": "tm_m_238",
+  "kind": "movie",
+  "status": "wishlist",
+  "source": {
+   "type": "tmdb",
+   "id": 238
+  },
+  "title": {
+   "en": "The Godfather",
+   "zh": "教父"
+  },
+  "originalTitle": "",
+  "overview": {
+   "en": "Spanning the years 1945 to 1955, a chronicle of the fictional Italian-American Corleone crime family. When organized crime family patriarch, Vito Corleone barely survives an attempt on his life, his youngest son, Michael steps in to take care of the would-be killers, launching a campaign of bloody revenge.",
+   "zh": "黑手黨柯里昂家族的大家長維托年事漸高，一場因拒絕毒品生意而引發的暗殺，迫使原本置身事外的小兒子米高踏進家族事業。"
+  },
+  "tagline": "An offer you can't refuse.",
+  "year": "1972",
+  "runtime": 175,
+  "genres": [
+   "Drama",
+   "Crime"
+  ],
+  "people": {
+   "label": "Directed by",
+   "names": [
+    "Francis Ford Coppola"
+   ],
+   "cast": [
+    "Marlon Brando",
+    "Al Pacino",
+    "James Caan",
+    "Robert Duvall",
+    "Richard S. Castellano",
+    "Diane Keaton",
+    "Talia Shire",
+    "Gianni Russo"
+   ]
+  },
+  "poster": "https://image.tmdb.org/t/p/w500/3bhkrj58Vtu7enYsRolD1fZdja1.jpg",
+  "backdrop": "https://image.tmdb.org/t/p/w1280/ejdD20cdHNFAYAN2DlqPToXKyzx.jpg",
+  "web": {
+   "tmdb": 8.7
+  },
+  "imdbId": "tt0068646",
+  "my": {}
+ },
+ {
+  "id": "tm_m_278",
+  "kind": "movie",
+  "status": "wishlist",
+  "source": {
+   "type": "tmdb",
+   "id": 278
+  },
+  "title": {
+   "en": "The Shawshank Redemption",
+   "zh": "月黑高飛"
+  },
+  "originalTitle": "",
+  "overview": {
+   "en": "Imprisoned in the 1940s for the double murder of his wife and her lover, upstanding banker Andy Dufresne begins a new life at the Shawshank prison, where he puts his accounting skills to work for an amoral warden. During his long stretch in prison, Dufresne comes to be admired by the other inmates -- including an older prisoner named Red -- for his integrity and unquenchable sense of hope.",
+   "zh": "銀行家安迪被誤判謀殺妻子，在監獄服終身監禁。他與囚犯瑞德結為知己，在漫長歲月裡憑著耐心與希望，熬過高牆內的日子。"
+  },
+  "tagline": "Fear can hold you prisoner. Hope can set you free.",
+  "year": "1994",
+  "runtime": 142,
+  "genres": [
+   "Drama",
+   "Crime"
+  ],
+  "people": {
+   "label": "Directed by",
+   "names": [
+    "Frank Darabont"
+   ],
+   "cast": [
+    "Tim Robbins",
+    "Morgan Freeman",
+    "Bob Gunton",
+    "William Sadler",
+    "Clancy Brown",
+    "Gil Bellows",
+    "James Whitmore",
+    "Mark Rolston"
+   ]
+  },
+  "poster": "https://image.tmdb.org/t/p/w500/9cqNxx0GxF0bflZmeSMuL5tnGzr.jpg",
+  "backdrop": "https://image.tmdb.org/t/p/w1280/v8xVDqt8uCul3c3mgx4VpGCwxJC.jpg",
+  "web": {
+   "tmdb": 8.7
+  },
+  "imdbId": "tt0111161",
+  "my": {}
+ },
+ {
+  "id": "tm_m_680",
+  "kind": "movie",
+  "status": "wishlist",
+  "source": {
+   "type": "tmdb",
+   "id": 680
+  },
+  "title": {
+   "en": "Pulp Fiction",
+   "zh": "危險人物"
+  },
+  "originalTitle": "",
+  "overview": {
+   "en": "A burger-loving hit man, his philosophical partner, a drug-addled gangster's moll and a washed-up boxer converge in this sprawling, comedic crime caper. Their adventures unfurl in three stories that ingeniously trip back and forth in time.",
+   "zh": "兩名殺手、一個拳手、黑幫老大和他的妻子，幾段看似毫無關連的洛杉磯故事，打亂時序後交織在一起。"
+  },
+  "tagline": "You won’t know the facts until you’ve seen the fiction.",
+  "year": "1994",
+  "runtime": 154,
+  "genres": [
+   "Thriller",
+   "Crime",
+   "Comedy"
+  ],
+  "people": {
+   "label": "Directed by",
+   "names": [
+    "Quentin Tarantino"
+   ],
+   "cast": [
+    "John Travolta",
+    "Samuel L. Jackson",
+    "Uma Thurman",
+    "Bruce Willis",
+    "Ving Rhames",
+    "Harvey Keitel",
+    "Eric Stoltz",
+    "Tim Roth"
+   ]
+  },
+  "poster": "https://image.tmdb.org/t/p/w500/vQWk5YBFWF4bZaofAbv0tShwBvQ.jpg",
+  "backdrop": "https://image.tmdb.org/t/p/w1280/suaEOtk1N1sgg2MTM7oZd2cfVp3.jpg",
+  "web": {
+   "tmdb": 8.5
+  },
+  "imdbId": "tt0110912",
+  "my": {}
+ },
+ {
+  "id": "tm_m_155",
+  "kind": "movie",
+  "status": "wishlist",
+  "source": {
+   "type": "tmdb",
+   "id": 155
+  },
+  "title": {
+   "en": "The Dark Knight",
+   "zh": "蝙蝠俠—黑夜之神"
+  },
+  "originalTitle": "",
+  "overview": {
+   "en": "Batman raises the stakes in his war on crime. With the help of Lt. Jim Gordon and District Attorney Harvey Dent, Batman sets out to dismantle the remaining criminal organizations that plague the streets. The partnership proves to be effective, but they soon find themselves prey to a reign of chaos unleashed by a rising criminal mastermind known to the terrified citizens of Gotham as the Joker.",
+   "zh": "蝙蝠俠與警方及新任檢察官聯手掃蕩高譚市的犯罪集團，卻遇上一個只想看著世界陷入混亂的對手：小丑。"
+  },
+  "tagline": "Welcome to a world without rules.",
+  "year": "2008",
+  "runtime": 152,
+  "genres": [
+   "Action",
+   "Thriller",
+   "Crime"
+  ],
+  "people": {
+   "label": "Directed by",
+   "names": [
+    "Christopher Nolan"
+   ],
+   "cast": [
+    "Christian Bale",
+    "Heath Ledger",
+    "Aaron Eckhart",
+    "Michael Caine",
+    "Maggie Gyllenhaal",
+    "Gary Oldman",
+    "Morgan Freeman",
+    "Monique Gabriela Curnen"
+   ]
+  },
+  "poster": "https://image.tmdb.org/t/p/w500/qJ2tW6WMUDux911r6m7haRef0WH.jpg",
+  "backdrop": "https://image.tmdb.org/t/p/w1280/cfT29Im5VDvjE0RpyKOSdCKZal7.jpg",
+  "web": {
+   "tmdb": 8.5
+  },
+  "imdbId": "tt0468569",
+  "my": {}
+ },
+ {
+  "id": "tm_m_27205",
+  "kind": "movie",
+  "status": "wishlist",
+  "source": {
+   "type": "tmdb",
+   "id": 27205
+  },
+  "title": {
+   "en": "Inception",
+   "zh": "潛行凶間"
+  },
+  "originalTitle": "",
+  "overview": {
+   "en": "Cobb, a skilled thief who commits corporate espionage by infiltrating the subconscious of his targets is offered a chance to regain his old life as payment for a task considered to be impossible: \"inception\", the implantation of another person's idea into a target's subconscious.",
+   "zh": "柯布擅長潛入別人的夢境盜取秘密。這一次，他要完成一項被認為不可能的任務：不是偷走一個念頭，而是植入一個念頭。"
+  },
+  "tagline": "Your mind is the scene of the crime.",
+  "year": "2010",
+  "runtime": 148,
+  "genres": [
+   "Action",
+   "Science Fiction",
+   "Crime"
+  ],
+  "people": {
+   "label": "Directed by",
+   "names": [
+    "Christopher Nolan"
+   ],
+   "cast": [
+    "Leonardo DiCaprio",
+    "Joseph Gordon-Levitt",
+    "Ken Watanabe",
+    "Tom Hardy",
+    "Elliot Page",
+    "Dileep Rao",
+    "Cillian Murphy",
+    "Tom Berenger"
+   ]
+  },
+  "poster": "https://image.tmdb.org/t/p/w500/xlaY2zyzMfkhk0HSC5VUwzoZPU1.jpg",
+  "backdrop": "https://image.tmdb.org/t/p/w1280/8ZTVqvKDQ8emSGUEMjsS4yHAwrp.jpg",
+  "web": {
+   "tmdb": 8.4
+  },
+  "imdbId": "tt1375666",
+  "my": {}
+ },
+ {
+  "id": "tm_m_157336",
+  "kind": "movie",
+  "status": "wishlist",
+  "source": {
+   "type": "tmdb",
+   "id": 157336
+  },
+  "title": {
+   "en": "Interstellar",
+   "zh": "星際啟示錄"
+  },
+  "originalTitle": "",
+  "overview": {
+   "en": "The adventures of a group of explorers who make use of a newly discovered wormhole to surpass the limitations on human space travel and conquer the vast distances involved in an interstellar voyage.",
+   "zh": "地球糧食危機日益嚴重，前太空人古柏告別一對子女，與科學家一同穿越蟲洞，為人類尋找新的家園。"
+  },
+  "tagline": "Mankind was born on Earth. It was never meant to die here.",
+  "year": "2014",
+  "runtime": 169,
+  "genres": [
+   "Adventure",
+   "Drama",
+   "Science Fiction"
+  ],
+  "people": {
+   "label": "Directed by",
+   "names": [
+    "Christopher Nolan"
+   ],
+   "cast": [
+    "Matthew McConaughey",
+    "Anne Hathaway",
+    "Michael Caine",
+    "Jessica Chastain",
+    "Casey Affleck",
+    "Wes Bentley",
+    "Topher Grace",
+    "Mackenzie Foy"
+   ]
+  },
+  "poster": "https://image.tmdb.org/t/p/w500/yQvGrMoipbRoddT0ZR8tPoR7NfX.jpg",
+  "backdrop": "https://image.tmdb.org/t/p/w1280/8sNiAPPYU14PUepFNeSNGUTiHW.jpg",
+  "web": {
+   "tmdb": 8.5
+  },
+  "imdbId": "tt0816692",
+  "my": {}
+ },
+ {
+  "id": "tm_m_129",
+  "kind": "movie",
+  "status": "wishlist",
+  "source": {
+   "type": "tmdb",
+   "id": 129
+  },
+  "title": {
+   "en": "Spirited Away",
+   "zh": "千與千尋"
+  },
+  "originalTitle": "千と千尋の神隠し",
+  "overview": {
+   "en": "A young girl, Chihiro, becomes trapped in a strange new world of spirits. When her parents undergo a mysterious transformation, she must call upon the courage she never knew she had to free her family.",
+   "zh": "十歲的千尋隨父母誤闖神靈的世界，父母因貪吃變成了豬。為了救回他們，她在神靈光顧的湯屋打工，學會勇敢面對陌生的一切。"
+  },
+  "tagline": "Prepare to be spirited away.",
+  "year": "2001",
+  "runtime": 125,
+  "genres": [
+   "Animation",
+   "Family",
+   "Fantasy",
+   "Adventure"
+  ],
+  "people": {
+   "label": "Directed by",
+   "names": [
+    "Hayao Miyazaki"
+   ],
+   "cast": [
+    "Rumi Hiiragi",
+    "Miyu Irino",
+    "Mari Natsuki",
+    "Takashi Naito",
+    "Yasuko Sawaguchi",
+    "Tatsuya Gashuin",
+    "Ryunosuke Kamiki",
+    "Yumi Tamai"
+   ]
+  },
+  "poster": "https://image.tmdb.org/t/p/w500/jUo8cNmU400WtZiJss45HNXlQ2e.jpg",
+  "backdrop": "https://image.tmdb.org/t/p/w1280/dyJvKsNs2KP8qQnAXbRwDjblViy.jpg",
+  "web": {
+   "tmdb": 8.5
+  },
+  "imdbId": "tt0245429",
+  "my": {}
+ },
+ {
+  "id": "tm_m_550",
+  "kind": "movie",
+  "status": "wishlist",
+  "source": {
+   "type": "tmdb",
+   "id": 550
+  },
+  "title": {
+   "en": "Fight Club",
+   "zh": "搏擊會"
+  },
+  "originalTitle": "",
+  "overview": {
+   "en": "A ticking-time-bomb insomniac and a slippery soap salesman channel primal male aggression into a shocking new form of therapy. Their concept catches on, with underground \"fight clubs\" forming in every town, until an eccentric gets in the way and ignites an out-of-control spiral toward oblivion.",
+   "zh": "長期失眠的上班族遇上特立獨行的肥皂商泰勒，兩人創立了一個以徒手搏鬥發洩的地下會社，事態卻逐漸失控。"
+  },
+  "tagline": "Mischief. Mayhem. Soap.",
+  "year": "1999",
+  "runtime": 139,
+  "genres": [
+   "Drama",
+   "Thriller"
+  ],
+  "people": {
+   "label": "Directed by",
+   "names": [
+    "David Fincher"
+   ],
+   "cast": [
+    "Edward Norton",
+    "Brad Pitt",
+    "Helena Bonham Carter",
+    "Meat Loaf",
+    "Jared Leto",
+    "Zach Grenier",
+    "Holt McCallany",
+    "Eion Bailey"
+   ]
+  },
+  "poster": "https://image.tmdb.org/t/p/w500/jSziioSwPVrOy9Yow3XhWIBDjq1.jpg",
+  "backdrop": "https://image.tmdb.org/t/p/w1280/c6OLXfKAk5BKeR6broC8pYiCquX.jpg",
+  "web": {
+   "tmdb": 8.4
+  },
+  "imdbId": "tt0137523",
+  "my": {}
+ },
+ {
+  "id": "tm_m_13",
+  "kind": "movie",
+  "status": "wishlist",
+  "source": {
+   "type": "tmdb",
+   "id": 13
+  },
+  "title": {
+   "en": "Forrest Gump",
+   "zh": "阿甘正傳"
+  },
+  "originalTitle": "",
+  "overview": {
+   "en": "A man with a low IQ has accomplished great things in his life and been present during significant historic events—in each case, far exceeding what anyone imagined he could do. But despite all he has achieved, his one true love eludes him.",
+   "zh": "天性單純的阿甘憑著一顆真誠的心，意外走過美國數十年間的重大時刻，卻始終惦記著青梅竹馬的珍妮。"
+  },
+  "tagline": "The world will never be the same once you've seen it through the eyes of Forrest Gump.",
+  "year": "1994",
+  "runtime": 142,
+  "genres": [
+   "Comedy",
+   "Drama",
+   "Romance"
+  ],
+  "people": {
+   "label": "Directed by",
+   "names": [
+    "Robert Zemeckis"
+   ],
+   "cast": [
+    "Tom Hanks",
+    "Robin Wright",
+    "Gary Sinise",
+    "Mykelti Williamson",
+    "Sally Field",
+    "Sam Anderson",
+    "Geoffrey Blake",
+    "Peter Dobson"
+   ]
+  },
+  "poster": "https://image.tmdb.org/t/p/w500/Cw4hIUIAmSYfK9QfaUW5igp9La.jpg",
+  "backdrop": "https://image.tmdb.org/t/p/w1280/66Kn4XWhkuPkJxOJyPEx4U2CUfN.jpg",
+  "web": {
+   "tmdb": 8.5
+  },
+  "imdbId": "tt0109830",
+  "my": {}
+ },
+ {
+  "id": "tm_m_496243",
+  "kind": "movie",
+  "status": "wishlist",
+  "source": {
+   "type": "tmdb",
+   "id": 496243
+  },
+  "title": {
+   "en": "Parasite",
+   "zh": "上流寄生族"
+  },
+  "originalTitle": "기생충",
+  "overview": {
+   "en": "All unemployed, Ki-taek's family takes peculiar interest in the wealthy and glamorous Parks for their livelihood until they get entangled in an unexpected incident.",
+   "zh": "全家失業的金家靠著偽造的履歷，一個接一個混進富裕的朴家工作，兩個家庭的命運從此糾纏在一起。"
+  },
+  "tagline": "Act like you own the place.",
+  "year": "2019",
+  "runtime": 133,
+  "genres": [
+   "Comedy",
+   "Thriller",
+   "Drama"
+  ],
+  "people": {
+   "label": "Directed by",
+   "names": [
+    "Bong Joon Ho"
+   ],
+   "cast": [
+    "Song Kang-ho",
+    "Lee Sun-kyun",
+    "Cho Yeo-jeong",
+    "Choi Woo-shik",
+    "Park So-dam",
+    "Lee Jung-eun",
+    "Jang Hye-jin",
+    "Park Myung-hoon"
+   ]
+  },
+  "poster": "https://image.tmdb.org/t/p/w500/7IiTTgloJzvGI1TAYymCfbfl3vT.jpg",
+  "backdrop": "https://image.tmdb.org/t/p/w1280/TU9NIjwzjoKPwQHoHshkFcQUCG.jpg",
+  "web": {
+   "tmdb": 8.5
+  },
+  "imdbId": "tt6751668",
+  "my": {}
+ },
+ {
+  "id": "tm_m_424",
+  "kind": "movie",
+  "status": "wishlist",
+  "source": {
+   "type": "tmdb",
+   "id": 424
+  },
+  "title": {
+   "en": "Schindler's List",
+   "zh": "舒特拉的名單"
+  },
+  "originalTitle": "",
+  "overview": {
+   "en": "The true story of how businessman Oskar Schindler saved over a thousand Jewish lives from the Nazis while they worked as slaves in his factory during World War II.",
+   "zh": "二戰期間，德國商人舒特拉在波蘭經營工廠。目睹納粹對猶太人的暴行後，他開始以僱用為名，設法保護廠內的猶太工人。"
+  },
+  "tagline": "Whoever saves one life, saves the world entire.",
+  "year": "1993",
+  "runtime": 195,
+  "genres": [
+   "Drama",
+   "History",
+   "War"
+  ],
+  "people": {
+   "label": "Directed by",
+   "names": [
+    "Steven Spielberg"
+   ],
+   "cast": [
+    "Liam Neeson",
+    "Ben Kingsley",
+    "Ralph Fiennes",
+    "Caroline Goodall",
+    "Jonathan Sagall",
+    "Embeth Davidtz",
+    "Małgorzata Gebel",
+    "Shmuel Levy"
+   ]
+  },
+  "poster": "https://image.tmdb.org/t/p/w500/sF1U4EUQS8YHUYjNl3pMGNIQyr0.jpg",
+  "backdrop": "https://image.tmdb.org/t/p/w1280/zb6fM1CX41D9rF9hdgclu0peUmy.jpg",
+  "web": {
+   "tmdb": 8.6
+  },
+  "imdbId": "tt0108052",
+  "my": {}
+ },
+ {
+  "id": "tm_m_120",
+  "kind": "movie",
+  "status": "wishlist",
+  "source": {
+   "type": "tmdb",
+   "id": 120
+  },
+  "title": {
+   "en": "The Lord of the Rings: The Fellowship of the Ring",
+   "zh": "魔戒首部曲：魔戒現身"
+  },
+  "originalTitle": "",
+  "overview": {
+   "en": "Young hobbit Frodo Baggins, after inheriting a mysterious ring from his uncle Bilbo, must leave his home in order to keep it from falling into the hands of its evil creator. Along the way, a fellowship is formed to protect the ringbearer and make sure that the ring arrives at its final destination: Mt. Doom, the only place where it can be destroyed.",
+   "zh": "哈比人佛羅多繼承了一枚能統御一切的魔戒。為了不讓它落入黑暗魔君索倫手中，他與八名同伴踏上前往末日火山的旅程。"
+  },
+  "tagline": "One ring to rule them all.",
+  "year": "2001",
+  "runtime": 179,
+  "genres": [
+   "Adventure",
+   "Fantasy",
+   "Action"
+  ],
+  "people": {
+   "label": "Directed by",
+   "names": [
+    "Peter Jackson"
+   ],
+   "cast": [
+    "Elijah Wood",
+    "Ian McKellen",
+    "Viggo Mortensen",
+    "Sean Astin",
+    "Ian Holm",
+    "Liv Tyler",
+    "Christopher Lee",
+    "Sean Bean"
+   ]
+  },
+  "poster": "https://image.tmdb.org/t/p/w500/6oom5QYQ2yQTMJIbnvbkBL9cHo6.jpg",
+  "backdrop": "https://image.tmdb.org/t/p/w1280/oiwc338EoBgS4sEI2ixAny4KQKg.jpg",
+  "web": {
+   "tmdb": 8.5
+  },
+  "imdbId": "tt0120737",
+  "my": {}
+ },
+ {
+  "id": "tm_m_11",
+  "kind": "movie",
+  "status": "wishlist",
+  "source": {
+   "type": "tmdb",
+   "id": 11
+  },
+  "title": {
+   "en": "Star Wars",
+   "zh": "星球大戰：新的希望"
+  },
+  "originalTitle": "",
+  "overview": {
+   "en": "Princess Leia is captured and held hostage by the evil Imperial forces in their effort to take over the galactic Empire. Venturesome Luke Skywalker and dashing captain Han Solo team together with the loveable robot duo R2-D2 and C-3PO to rescue the beautiful princess and restore peace and justice in the Empire.",
+   "zh": "農場少年路克遇上絕地武士歐比王，捲入反抗軍對抗銀河帝國的戰爭，誓要救出被囚的莉亞公主，並摧毀帝國的終極武器死星。"
+  },
+  "tagline": "A long time ago in a galaxy far, far away...",
+  "year": "1977",
+  "runtime": 121,
+  "genres": [
+   "Adventure",
+   "Action",
+   "Science Fiction"
+  ],
+  "people": {
+   "label": "Directed by",
+   "names": [
+    "George Lucas"
+   ],
+   "cast": [
+    "Mark Hamill",
+    "Harrison Ford",
+    "Carrie Fisher",
+    "Peter Cushing",
+    "Alec Guinness",
+    "Anthony Daniels",
+    "Kenny Baker",
+    "Peter Mayhew"
+   ]
+  },
+  "poster": "https://image.tmdb.org/t/p/w500/fai0rspsNeJCS69wHNjOdWxcI7P.jpg",
+  "backdrop": "https://image.tmdb.org/t/p/w1280/zqkmTXzjkAgXmEWLRsY4UpTWCeo.jpg",
+  "web": {
+   "tmdb": 8.2
+  },
+  "imdbId": "tt0076759",
+  "my": {}
+ },
+ {
+  "id": "tm_m_105",
+  "kind": "movie",
+  "status": "wishlist",
+  "source": {
+   "type": "tmdb",
+   "id": 105
+  },
+  "title": {
+   "en": "Back to the Future",
+   "zh": "回到未來"
+  },
+  "originalTitle": "",
+  "overview": {
+   "en": "Eighties teenager Marty McFly is accidentally sent back in time to 1955, inadvertently disrupting his parents' first meeting and attracting his mother's romantic interest. Marty must repair the damage to history by rekindling his parents' romance and - with the help of his eccentric inventor friend Doc Brown - return to 1985.",
+   "zh": "高中生馬田意外駕駛博士改裝的時光車回到1955年，卻打亂了父母相遇的經過，必須設法令兩人相愛，否則自己將從此消失。"
+  },
+  "tagline": "He was never in time for his classes... He wasn't in time for his dinner... Then one day... he wasn't in his time at all.",
+  "year": "1985",
+  "runtime": 116,
+  "genres": [
+   "Adventure",
+   "Comedy",
+   "Science Fiction"
+  ],
+  "people": {
+   "label": "Directed by",
+   "names": [
+    "Robert Zemeckis"
+   ],
+   "cast": [
+    "Michael J. Fox",
+    "Christopher Lloyd",
+    "Crispin Glover",
+    "Lea Thompson",
+    "Claudia Wells",
+    "Thomas F. Wilson",
+    "Marc McClure",
+    "Wendie Jo Sperber"
+   ]
+  },
+  "poster": "https://image.tmdb.org/t/p/w500/vN5B5WgYscRGcQpVhHl6p9DDTP0.jpg",
+  "backdrop": "https://image.tmdb.org/t/p/w1280/5bzPWQ2dFUl2aZKkp7ILJVVkRed.jpg",
+  "web": {
+   "tmdb": 8.3
+  },
+  "imdbId": "tt0088763",
+  "my": {}
+ },
+ {
+  "id": "tm_m_78",
+  "kind": "movie",
+  "status": "wishlist",
+  "source": {
+   "type": "tmdb",
+   "id": 78
+  },
+  "title": {
+   "en": "Blade Runner",
+   "zh": "銀翼殺手"
+  },
+  "originalTitle": "",
+  "overview": {
+   "en": "In the smog-choked dystopian Los Angeles of 2019, blade runner Rick Deckard is called out of retirement to terminate a quartet of replicants who have escaped to Earth seeking their creator for a way to extend their short life spans.",
+   "zh": "2019年的洛杉磯，退役的「銀翼殺手」狄卡被召回，追捕四名逃回地球、渴望延續生命的複製人。"
+  },
+  "tagline": "Man has made his match ...now it's his problem.",
+  "year": "1982",
+  "runtime": 118,
+  "genres": [
+   "Science Fiction",
+   "Drama",
+   "Thriller"
+  ],
+  "people": {
+   "label": "Directed by",
+   "names": [
+    "Ridley Scott"
+   ],
+   "cast": [
+    "Harrison Ford",
+    "Rutger Hauer",
+    "Sean Young",
+    "Edward James Olmos",
+    "M. Emmet Walsh",
+    "Daryl Hannah",
+    "William Sanderson",
+    "Brion James"
+   ]
+  },
+  "poster": "https://image.tmdb.org/t/p/w500/63N9uy8nd9j7Eog2axPQ8lbr3Wj.jpg",
+  "backdrop": "https://image.tmdb.org/t/p/w1280/2spEHYDcyE9r9mS7AFEscfKVDzO.jpg",
+  "web": {
+   "tmdb": 7.9
+  },
+  "imdbId": "tt0083658",
+  "my": {}
+ },
+ {
+  "id": "tm_m_62",
+  "kind": "movie",
+  "status": "wishlist",
+  "source": {
+   "type": "tmdb",
+   "id": 62
+  },
+  "title": {
+   "en": "2001: A Space Odyssey",
+   "zh": "2001 太空漫遊"
+  },
+  "originalTitle": "",
+  "overview": {
+   "en": "Humanity finds a mysterious object buried beneath the lunar surface and sets off to find its origins with the help of HAL 9000, the world's most advanced super computer.",
+   "zh": "從遠古猿人到登陸月球，一塊神秘的黑色石碑一再出現。太空船發現號載著太空人與電腦 HAL 9000 前往木星，探尋石碑的來源。"
+  },
+  "tagline": "An epic drama of adventure and exploration.",
+  "year": "1968",
+  "runtime": 149,
+  "genres": [
+   "Science Fiction",
+   "Mystery",
+   "Adventure"
+  ],
+  "people": {
+   "label": "Directed by",
+   "names": [
+    "Stanley Kubrick"
+   ],
+   "cast": [
+    "Keir Dullea",
+    "Gary Lockwood",
+    "William Sylvester",
+    "Douglas Rain",
+    "Daniel Richter",
+    "Leonard Rossiter",
+    "Margaret Tyzack",
+    "Robert Beatty"
+   ]
+  },
+  "poster": "https://image.tmdb.org/t/p/w500/ve72VxNqjGM69Uky4WTo2bK6rfq.jpg",
+  "backdrop": "https://image.tmdb.org/t/p/w1280/w5IDXtifKntw0ajv2co7jFlTQDM.jpg",
+  "web": {
+   "tmdb": 8
+  },
+  "imdbId": "tt0062622",
+  "my": {}
+ },
+ {
+  "id": "tm_m_346",
+  "kind": "movie",
+  "status": "wishlist",
+  "source": {
+   "type": "tmdb",
+   "id": 346
+  },
+  "title": {
+   "en": "Seven Samurai",
+   "zh": "七俠四義"
+  },
+  "originalTitle": "七人の侍",
+  "overview": {
+   "en": "A samurai answers a village's request for protection after he falls on hard times. The town needs protection from bandits, so the samurai gathers six others to help him teach the people how to defend themselves, and the villagers provide the soldiers with food.",
+   "zh": "戰國時代，一條貧窮的村莊不堪山賊年年搶掠，村民以白米飯作酬勞，請來七名浪人武士保衛村子。"
+  },
+  "tagline": "Unmatched for suspense and spectacle!",
+  "year": "1954",
+  "runtime": 207,
+  "genres": [
+   "Action",
+   "Drama"
+  ],
+  "people": {
+   "label": "Directed by",
+   "names": [
+    "Akira Kurosawa"
+   ],
+   "cast": [
+    "Toshirō Mifune",
+    "Takashi Shimura",
+    "Yoshio Inaba",
+    "Seiji Miyaguchi",
+    "Minoru Chiaki",
+    "Daisuke Katō",
+    "Isao Kimura",
+    "Keiko Tsushima"
+   ]
+  },
+  "poster": "https://image.tmdb.org/t/p/w500/lOMGc8bnSwQhS4XyE1S99uH8NXf.jpg",
+  "backdrop": "https://image.tmdb.org/t/p/w1280/qvZ91FwMq6O47VViAr8vZNQz3WI.jpg",
+  "web": {
+   "tmdb": 8.5
+  },
+  "imdbId": "tt0047478",
+  "my": {}
+ }
+];
+
+// Nolan films on the wishlist join the Christopher Nolan collection.
+const JOIN_GROUPS = { g_nolan: ['tm_m_155', 'tm_m_27205', 'tm_m_157336'] };
+
+// Loads your list once per device (and later additions once each), never
+// overwriting anything you've edited. Returns how many titles were added.
 export function loadStarter({ force = false } = {}) {
-  const FLAG = 'shelf.starter.v1';
-  let done = false;
-  try { done = !!localStorage.getItem(FLAG); } catch {}
-  if (done && !force) return 0;
-  if (store.hasSamples()) store.removeSamples();
-  // A fixed, old timestamp: anything you've edited on another device always wins over this list.
-  const base = Date.parse('2026-10-27T00:00:00Z');
-  const fresh = RECORDS.filter((r) => !store.get(r.id)).map((r) => {
-    const i = RECORDS.indexOf(r);
-    const at = new Date(base - i * 60000).toISOString();
-    return { ...structuredClone(r), addedAt: at, updatedAt: at };
-  });
-  if (fresh.length) store.seed(fresh);
-  try { localStorage.setItem(FLAG, '1'); } catch {}
-  return fresh.length;
+  let added = 0;
+  if (force || !flag('shelf.starter.v1')) {
+    if (store.hasSamples()) store.removeSamples();
+    added += seedFrom(RECORDS, '2026-10-27T00:00:00Z', force);
+    setFlag('shelf.starter.v1');
+  }
+  if (force || !flag('shelf.starter.v2')) {
+    added += seedFrom(CLASSICS, '2026-11-24T08:00:00Z', force);
+    for (const [gid, ids] of Object.entries(JOIN_GROUPS)) {
+      const g = store.get(gid);
+      const missing = ids.filter((id) => store.get(id) && !g?.members?.includes(id));
+      if (g && missing.length) store.put({ ...g, members: [...(g.members || []), ...missing] });
+    }
+    setFlag('shelf.starter.v2');
+  }
+  return added;
 }
+
+// A fixed timestamp per batch: anything you've edited on another device always wins.
+// On a normal load, titles you deleted stay deleted; "Restore my starter list" brings them back.
+function seedFrom(list, at, restoreDeleted) {
+  const base = Date.parse(at);
+  const fresh = list
+    .filter((r) => !store.get(r.id) && (restoreDeleted || !store.known(r.id)))
+    .map((r) => {
+      const t = new Date(base - list.indexOf(r) * 60000).toISOString();
+      return { ...structuredClone(r), addedAt: t, updatedAt: t };
+    });
+  if (fresh.length) store.seed(fresh);
+  return fresh.filter((r) => r.kind !== 'group').length;
+}
+
+function flag(k) { try { return !!localStorage.getItem(k); } catch { return false; } }
+function setFlag(k) { try { localStorage.setItem(k, '1'); } catch {} }

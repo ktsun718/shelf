@@ -2,7 +2,7 @@
 import * as store from './store.js';
 import { sized } from './api.js';
 import {
-  bi, esc, plain, card, lcard, wideCard, groupCard, icon, KIND, KIND_PLURAL, statusLabel, segmented, setSeg, placePills,
+  bi, esc, plain, card, lcard, wideCard, groupCard, icon, KIND, KIND_PLURAL, kindDot, statusLabel, segmented, setSeg, placePills,
   stars, myScore, posterBox, openSheet, confirmSheet, toast, debounce, safeUrl, showWeb, webScore,
 } from './ui.js';
 
@@ -30,16 +30,14 @@ export function renderHome(root) {
     <div class="wall" aria-hidden="true"><div class="wall-plane">${wallRows(all)}</div></div>
     <div class="stage-vignette"></div>
     <div class="stage-copy wrap">
-      <p class="eyebrow fade-up" style="--d:0"><i class="live-dot"></i>${greeting()}</p>
-      <h1 class="stage-title fade-up" style="--d:1">What’s on <em>tonight</em>?</h1>
-      <p class="stage-lead fade-up" style="--d:2">Pick something — or let your shelf pick for you.</p>
-      ${picks.length ? `<div class="pick-card fade-up" style="--d:3" data-pick>${pickCard(picks[0])}</div>` : `<div class="fade-up" style="--d:3"><button class="btn btn-light btn-lg" data-action="add">${icon.plus}<span>Add a title</span></button></div>`}
+      <h1 class="stage-title fade-up" style="--d:0">What’s on tonight?</h1>
+      <p class="stage-lead fade-up" style="--d:1">${picks.length ? 'Picked at random from what you haven’t finished' : 'Everything on your shelf is finished'}</p>
+      ${picks.length ? `<div class="pick-card fade-up" style="--d:2" data-pick>${pickCard(picks[0])}</div>` : `<div class="fade-up" style="--d:2"><button class="btn btn-light btn-lg" data-action="add">${icon.plus}<span>Add a title</span></button></div>`}
     </div>
   </section>
 
   <section class="ledger wrap">
-    <p class="eyebrow reveal"><i class="live-dot"></i>Your shelf so far</p>
-    <h2 class="ledger-line reveal">You’ve lived through ${num(films, 'film', 'sunset')}, ${num(series, 'series', 'aurora', 'series')}<br>and ${num(books, 'book', 'gold')}.</h2>
+    <h2 class="ledger-line reveal">You’ve lived through ${num(films, 'film', 'film')}, ${num(series, 'series', 'series', 'series')} and ${num(books, 'book', 'book')}.</h2>
     <p class="ledger-sub reveal">That’s roughly <b data-count="${hours}">0</b> hours spent in other worlds.</p>
     ${wish.length ? `<a class="ledger-wish reveal" href="#/lib/all?status=wishlist">${wish.length} more waiting on your wishlist ${icon.right}</a>` : ''}
   </section>
@@ -50,7 +48,7 @@ export function renderHome(root) {
   </div>
   <div class="home-rows"></div>
   <div class="home-foot wrap reveal">
-    <a class="btn btn-glass" href="#/lib/all">${icon.search}<span>Browse & search everything</span></a>
+    <a class="btn btn-glass" href="#/lib/all">${icon.search}<span>Search your shelf</span></a>
   </div>`;
 
   const rowsEl = root.querySelector('.home-rows');
@@ -85,12 +83,7 @@ export function renderHome(root) {
     setTimeout(() => { box.innerHTML = pickCard(picks[p]); box.classList.remove('swap'); }, 260);
   });
 
-  return stageParallax(root);
-}
-
-function greeting() {
-  const h = new Date().getHours();
-  return h < 5 ? 'Up late' : h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening';
+  return null;
 }
 
 function shuffle(list) {
@@ -102,12 +95,12 @@ function shuffle(list) {
 function pickCard(it) {
   return `<a class="pick-poster" href="#/item/${it.id}" data-id="${it.id}">${posterBox(it, 'w185')}</a>
     <div class="pick-body">
-      <span class="pick-label">${icon.sparkle} Tonight’s pick</span>
+      <span class="pick-label">Tonight’s pick</span>
       <a class="pick-title" href="#/item/${it.id}">${bi(it.title)}</a>
-      <span class="pick-meta">${KIND[it.kind]}${it.year ? ` · ${esc(it.year)}` : ''} · ${statusLabel(it.kind, it.status)}</span>
+      <span class="pick-meta">${kindDot(it.kind)}<span>${KIND[it.kind]}${it.year ? ` · ${esc(it.year)}` : ''} · ${statusLabel(it.kind, it.status)}</span></span>
       <div class="pick-actions">
         <a class="btn btn-light btn-sm" href="#/item/${it.id}">Open</a>
-        <button class="btn btn-glass btn-sm" data-another>${icon.refresh}<span>Another</span></button>
+        <button class="btn btn-glass btn-sm" data-another>${icon.shuffle}<span>Another</span></button>
       </div>
     </div>`;
 }
@@ -125,17 +118,6 @@ function wallRows(all) {
     html += `<div class="wall-row" style="--dur:${70 + r * 14}s;--dir:${r % 2 ? 'reverse' : 'normal'}"><div class="wall-strip">${strip}${strip}</div></div>`;
   }
   return html;
-}
-
-function stageParallax(root) {
-  const stage = root.querySelector('[data-stage]');
-  if (!stage || matchMedia('(hover: none)').matches) return null;
-  const move = (e) => {
-    stage.style.setProperty('--mx', ((e.clientX / innerWidth) - 0.5).toFixed(3));
-    stage.style.setProperty('--my', ((e.clientY / innerHeight) - 0.5).toFixed(3));
-  };
-  addEventListener('pointermove', move, { passive: true });
-  return () => removeEventListener('pointermove', move);
 }
 
 const num = (n, one, tone, many = `${one}s`) => `<span class="num tone-${tone}"><b data-count="${n}">0</b> ${n === 1 ? one : many}</span>`;
@@ -163,23 +145,23 @@ function homeRows(all, filter) {
   let html = '';
   if (filter !== 'wishlist') {
     const cont = of(null, 'progress');
-    if (cont.length) html += row('Continue <em>where you left off</em>', cont.map(wideCard), '#/lib/all?status=progress', 'wides', cont.length);
+    if (cont.length) html += row('Continue where you left off', cont.map(wideCard), '#/lib/all?status=progress', 'wides', cont.length);
   }
   const rows = [];
   if (filter === 'all') {
-    rows.push(['<em>Movies</em>', of('movie'), '#/lib/movie'], ['<em>TV</em> Shows', of('tv'), '#/lib/tv'], ['<em>Books</em>', of('book'), '#/lib/book']);
+    rows.push(['Movies', of('movie'), '#/lib/movie'], ['TV Shows', of('tv'), '#/lib/tv'], ['Books', of('book'), '#/lib/book']);
   } else if (filter === 'done') {
     const top = all.filter((i) => i.status === 'done' && myScore(i) >= 4).sort((a, b) => myScore(b) - myScore(a));
-    if (top.length) rows.push(['Your <em>favourites</em>', top, '#/lib/all?status=done&sort=mine']);
-    rows.push(['Recently <em>finished</em>', all.filter((i) => i.status === 'done').sort(byFinished).slice(0, 20), '#/lib/all?status=done']);
+    if (top.length) rows.push(['Your favourites', top, '#/lib/all?status=done&sort=mine']);
+    rows.push(['Recently finished', all.filter((i) => i.status === 'done').sort(byFinished).slice(0, 20), '#/lib/all?status=done']);
   } else {
-    rows.push(['Movies <em>to watch</em>', of('movie', 'wishlist'), '#/lib/movie?status=wishlist'], ['Shows <em>to watch</em>', of('tv', 'wishlist'), '#/lib/tv?status=wishlist'], ['Books <em>to read</em>', of('book', 'wishlist'), '#/lib/book?status=wishlist']);
+    rows.push(['Movies to watch', of('movie', 'wishlist'), '#/lib/movie?status=wishlist'], ['Shows to watch', of('tv', 'wishlist'), '#/lib/tv?status=wishlist'], ['Books to read', of('book', 'wishlist'), '#/lib/book?status=wishlist']);
   }
   const cls = shape() === 'landscape' ? 'land' : 'port';
   html += rows.filter(([, list]) => list.length).map(([title, list, link]) => row(title, list.map(tile), link, cls, list.length)).join('');
   const gs = store.groups();
-  if (filter === 'all' && gs.length) html += row('<em>Collections</em>', gs.map(groupCard), '#/collections', 'groups', gs.length);
-  return html || '<p class="empty wrap">Nothing here yet.</p>';
+  if (filter === 'all' && gs.length) html += row('Collections', gs.map(groupCard), '#/collections', 'groups', gs.length);
+  return html || '<p class="empty wrap">Nothing here yet</p>';
 }
 
 // The whole heading is a link into that section.
@@ -212,12 +194,10 @@ function bindRowArrows(root) {
 
 function renderWelcome(root) {
   root.innerHTML = `<section class="welcome">
-    <div class="welcome-bg"><i></i><i></i><i></i></div>
     <div class="welcome-inner wrap">
-      <p class="eyebrow fade-up" style="--d:0"><i class="live-dot"></i>Shelf</p>
-      <h1 class="display fade-up" style="--d:1">Every story.<br><em class="grad">Beautifully kept.</em></h1>
-      <p class="lead fade-up" style="--d:2">The movies, shows and books you love — and the ones you’re waiting for. Rated your way, season by season.</p>
-      <div class="welcome-actions fade-up" style="--d:3">
+      <h1 class="display fade-up" style="--d:0">Start your shelf</h1>
+      <p class="lead fade-up" style="--d:1">Keep the films, series and books you’ve finished, rate each season, and line up what’s next.</p>
+      <div class="welcome-actions fade-up" style="--d:2">
         <button class="btn btn-light btn-lg" data-action="add">${icon.plus}<span>Add your first title</span></button>
         <button class="btn btn-glass btn-lg" data-action="samples">Load my list</button>
       </div>
@@ -237,13 +217,12 @@ export function renderLibrary(root, kind, query) {
   const pool = () => store.items().filter((i) => kind === 'all' || i.kind === kind);
   const k = kind === 'book' ? 'book' : 'movie';
   const count = (s) => pool().filter((i) => s === 'all' || i.status === s).length;
-  const title = { movie: '<em>Movies</em>', tv: '<em>TV</em> Shows', book: '<em>Books</em>', all: 'Every<em>thing</em>' }[kind];
+  const title = { movie: 'Movies', tv: 'TV Shows', book: 'Books', all: 'Everything' }[kind];
 
   root.innerHTML = `<section class="page wrap">
     <header class="page-head">
-      <p class="eyebrow fade-up" style="--d:0"><i class="live-dot"></i>${kind === 'all' ? 'Your whole shelf' : 'Your library'}</p>
-      <h1 class="large-title fade-up" style="--d:1">${title}</h1>
-      <div class="page-tools fade-up" style="--d:2">
+      <h1 class="large-title fade-up" style="--d:0">${title}</h1>
+      <div class="page-tools fade-up" style="--d:1">
         <div class="tools-top">
           ${segmented('status', [
             ['all', `All <small>${count('all')}</small>`],
@@ -255,7 +234,7 @@ export function renderLibrary(root, kind, query) {
         </div>
         <div class="tool-row">
           ${kind === 'all' ? `<div class="chips" data-type>${[['all', 'All'], ['movie', 'Movies'], ['tv', 'TV'], ['book', 'Books']].map(([v, l]) => `<button class="chip ${st.type === v ? 'on' : ''}" data-v="${v}">${l}</button>`).join('')}</div>` : ''}
-          <label class="search-field">${icon.search}<input type="search" placeholder="Search titles, people…" value="${esc(st.q)}" data-q></label>
+          <label class="search-field">${icon.search}<input type="search" placeholder="Search" aria-label="Search titles and people" value="${esc(st.q)}" data-q></label>
           <label class="select"><span>Sort</span>
             <select data-sort>
               ${[['added', 'Recently added'], ['title', 'Title'], ['year', 'Release year'], ['mine', 'My rating'], ['web', 'Online rating']].map(([v, l]) => `<option value="${v}" ${st.sort === v ? 'selected' : ''}>${l}</option>`).join('')}
@@ -289,7 +268,7 @@ export function renderLibrary(root, kind, query) {
     const items = list();
     body.classList.toggle('is-spot', st.view === 'spot');
     if (!items.length) {
-      body.innerHTML = `<div class="empty"><p>${st.q ? 'No matches.' : 'Nothing here yet.'}</p><button class="btn btn-glass" data-action="add">${icon.plus}<span>Add a title</span></button></div>`;
+      body.innerHTML = `<div class="empty"><p>${st.q ? 'No matches' : 'Nothing here yet'}</p><button class="btn btn-glass" data-action="add">${icon.plus}<span>Add a title</span></button></div>`;
       return;
     }
     if (st.view === 'spot') { spotCleanup = renderSpotlight(body, items); return; }
@@ -417,7 +396,7 @@ function spotInfo(it) {
     ? `<div class="spot-score">${stars(myScore(it), { size: 'sm' })}<b>${myScore(it).toFixed(1)}</b><span>yours</span></div>`
     : showWeb(it) && webScore(it) ? `<div class="spot-score"><b>${esc(webScore(it))}</b></div>` : '';
   const people = it.people?.names?.length ? `<span>${esc(it.people.names.slice(0, 2).join(', '))}</span>` : '';
-  return `<p class="spot-meta"><span class="status-chip s-${it.status}">${statusLabel(it.kind, it.status)}</span><span>${KIND[it.kind]}</span>${it.year ? `<span>${esc(it.year)}</span>` : ''}${people}</p>
+  return `<p class="spot-meta"><span class="status-chip s-${it.status}">${statusLabel(it.kind, it.status)}</span><span class="spot-kind">${kindDot(it.kind)}${KIND[it.kind]}</span>${it.year ? `<span>${esc(it.year)}</span>` : ''}${people}</p>
     <h2 class="spot-title"><a href="#/item/${it.id}">${bi(it.title)}</a></h2>
     ${score}
     ${it.overview?.en || it.overview?.zh ? `<p class="spot-ov">${bi(it.overview)}</p>` : ''}
@@ -430,10 +409,9 @@ export function renderCollections(root) {
   const gs = store.groups().sort(byAdded);
   root.innerHTML = `<section class="page wrap">
     <header class="page-head">
-      <p class="eyebrow fade-up" style="--d:0"><i class="live-dot"></i>Series, franchises & universes</p>
-      <h1 class="large-title fade-up" style="--d:1"><em>Collections</em></h1>
-      <p class="lead-sm fade-up" style="--d:2">Keep related movies, seasons and books together — and rate each one on its own.</p>
-      <div class="fade-up" style="--d:3"><button class="btn btn-light" data-new-group>${icon.plus}<span>New collection</span></button></div>
+      <h1 class="large-title fade-up" style="--d:0">Collections</h1>
+      <p class="lead-sm fade-up" style="--d:1">Series, franchises and universes, kept together. Each title is still rated on its own.</p>
+      <div class="fade-up" style="--d:2"><button class="btn btn-light" data-new-group>${icon.plus}<span>New collection</span></button></div>
     </header>
     <div class="grid groups">${gs.length ? gs.map(groupCard).join('') : '<div class="empty"><p>No collections yet. Movies that belong to a series are grouped automatically when you add them.</p></div>'}</div>
   </section>`;
@@ -474,7 +452,7 @@ export function renderGroup(root, id) {
     <div class="detail-backdrop ${members.find((m) => m.backdrop) ? '' : 'from-poster'}" ${bg ? `style="background-image:url('${esc(bg)}')"` : ''}></div>
     <div class="detail-top wrap">
       <a class="back-link" href="#/collections">${icon.back}<span>Collections</span></a>
-      <p class="eyebrow fade-up" style="--d:0"><i class="live-dot"></i>Collection · ${members.length} title${members.length === 1 ? '' : 's'}</p>
+      <p class="meta-line fade-up" style="--d:0"><span>Collection</span><span>${members.length} title${members.length === 1 ? '' : 's'}</span></p>
       <h1 class="detail-title fade-up" style="--d:1">${bi(g.name)}</h1>
       ${g.overview?.en || g.overview?.zh ? `<p class="detail-overview fade-up" style="--d:2">${bi(g.overview)}</p>` : ''}
       <div class="group-stats fade-up" style="--d:3">
@@ -484,7 +462,7 @@ export function renderGroup(root, id) {
       </div>
     </div>
     <section class="wrap detail-section">
-      <div class="sec-head"><h2>In this <em>collection</em></h2>
+      <div class="sec-head"><h2>In this collection</h2>
         <div class="sec-actions">
           <button class="btn btn-glass btn-sm" data-add-members>${icon.plus}<span>Add titles</span></button>
           <button class="btn btn-glass btn-sm" data-edit-group>${icon.edit}<span>Edit</span></button>
@@ -506,7 +484,7 @@ export function renderGroup(root, id) {
             <button class="icon-btn" data-move="1" data-m="${m.id}" aria-label="Move down" ${i === members.length - 1 ? 'disabled' : ''}>${icon.down}</button>
             <button class="icon-btn" data-unlink="${m.id}" aria-label="Remove from collection">${icon.close}</button>
           </div>
-        </li>`).join('') || '<p class="empty">No titles yet — add some from your library.</p>'}
+        </li>`).join('') || '<p class="empty">No titles yet. Add some from your library.</p>'}
       </ol>
       <div class="danger-zone"><button class="btn btn-ghost-danger btn-sm" data-delete-group>${icon.trash}<span>Delete collection</span></button><small class="muted">Titles stay in your library.</small></div>
     </section>
@@ -538,7 +516,7 @@ function pickMembersSheet(g) {
   const all = store.items().sort((a, b) => plain(a.title).localeCompare(plain(b.title)));
   const s = openSheet(`<div class="picker">
     <h2>Add to “${esc(plain(g.name))}”</h2>
-    <label class="search-field">${icon.search}<input type="search" placeholder="Filter your library…" data-f></label>
+    <label class="search-field">${icon.search}<input type="search" placeholder="Filter" aria-label="Filter your library" data-f></label>
     <div class="pick-list">${all.map((i) => `<label class="pick-row" data-t="${esc(`${i.title?.en} ${i.title?.zh || ''}`.toLowerCase())}">
       <input type="checkbox" value="${i.id}" ${g.members.includes(i.id) ? 'checked' : ''}>
       ${posterBox(i, 'w92')}

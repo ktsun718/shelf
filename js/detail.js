@@ -2,7 +2,7 @@
 import * as store from './store.js';
 import * as api from './api.js';
 import {
-  bi, esc, plain, KIND, statusLabel, icon, stars, bindRatings, posterBox, card, catBar, radar, mood,
+  bi, esc, plain, KIND, kindDot, statusLabel, icon, stars, bindRatings, posterBox, card, catBar, radar, mood,
   openSheet, confirmSheet, toast, debounce, myScore, safeUrl, showWeb,
 } from './ui.js';
 import { editGroupSheet } from './views.js';
@@ -29,7 +29,7 @@ export function renderDetail(root, id) {
       <div class="detail-hero">
         <div class="detail-poster" style="view-transition-name:poster">${posterBox(it, 'w500').replace('class="poster ', 'class="poster big ')}</div>
         <div class="detail-head">
-          <p class="meta-line fade-up" style="--d:0">${meta}</p>
+          <p class="meta-line fade-up" style="--d:0">${kindDot(it.kind)}${meta}</p>
           <h1 class="detail-title fade-up" style="--d:1">${bi(it.title)}</h1>
           ${it.originalTitle ? `<p class="orig fade-up" style="--d:1">${esc(it.originalTitle)}</p>` : ''}
           ${it.people?.names?.length ? `<p class="people fade-up" style="--d:2"><span>${esc(it.people.label || 'By')}</span> ${esc(it.people.names.join(', '))}</p>` : ''}
@@ -49,7 +49,7 @@ export function renderDetail(root, id) {
     </section>` : ''}
 
     <section class="wrap detail-section take reveal">
-      <div class="sec-head"><h2>Your <em>take</em></h2>${it.status === 'wishlist' ? `<span class="muted">Haven’t ${it.kind === 'book' ? 'read' : 'watched'} it yet? Notes are welcome anyway.</span>` : ''}</div>
+      <div class="sec-head"><h2>Your take</h2>${it.status === 'wishlist' ? `<span class="muted">Haven’t ${it.kind === 'book' ? 'read' : 'watched'} it yet? Notes are welcome anyway.</span>` : ''}</div>
       ${reviewBlock(it, cats, { r: it.id })}
     </section>
 
@@ -75,7 +75,7 @@ const fmtRuntime = (m) => (m >= 60 ? `${Math.floor(m / 60)}h ${m % 60}m` : `${m}
 
 function statusIcon(s) {
   return {
-    wishlist: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M6 3.5h12v17l-6-4-6 4z"/></svg>',
+    wishlist: icon.bookmark,
     progress: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l11-6.5z"/></svg>',
     done: icon.check,
   }[s];
@@ -96,7 +96,7 @@ function webRatings(it) {
   // Wishlist: keep outside opinions hidden until you ask for them.
   if (!showWeb(it)) {
     return `<div class="web-ratings veiled fade-up" style="--d:3" data-veil>
-      <button class="peek" data-peek>${icon.eye}<span>Peek at online scores</span></button>
+      <button class="peek" data-peek>${icon.eye}<span>Show online scores</span></button>
       <div class="wr-list">${html}</div>
     </div>`;
   }
@@ -127,7 +127,7 @@ function reviewBlock(it, cats, at, { compact = false } = {}) {
     </div>
     <div class="journal">
       <span class="journal-mark" aria-hidden="true">“</span>
-      <textarea class="journal-text" rows="${compact ? 2 : 3}" maxlength="20000" placeholder="${compact ? 'What happened this season that stuck with you?' : 'Write it like a diary — what stayed with you?'}" data-comment ${a}>${esc(my.comment || '')}</textarea>
+      <textarea class="journal-text" rows="${compact ? 2 : 3}" maxlength="20000" placeholder="${compact ? 'What stuck with you this season?' : 'What stayed with you?'}" data-comment ${a}>${esc(my.comment || '')}</textarea>
       <div class="journal-foot">
         ${compact ? '' : `<label class="date-chip">${icon.calendar}<span>${dateLabel}</span><input type="date" data-date ${a} value="${esc(it.my?.date || '')}"></label>`}
         <span class="saved" data-saved>${icon.check}Saved</span>
@@ -155,7 +155,7 @@ function seasonsSection(it) {
   const regular = list.filter((s) => s.n > 0);
   const seen = regular.filter((s) => s.my?.seen).length;
   return `<section class="wrap detail-section reveal" data-seasons>
-    <div class="sec-head"><h2><em>Seasons</em></h2>
+    <div class="sec-head"><h2>Seasons</h2>
       ${regular.length ? `<div class="progress"><div class="bar"><i style="width:${(seen / regular.length) * 100}%"></i></div><span class="muted" data-progress>${seen} of ${regular.length} watched</span></div>` : ''}
     </div>
     <div class="seasons">${list.map((s) => seasonRow(it, s)).join('')}</div>
@@ -215,7 +215,7 @@ function epRow(it, s, e) {
       <div class="ep-rate">${stars(my.overall, { attrs: `data-rate ${a} data-f="overall"`, size: 'sm', label: `Episode ${e.n} rating` })}<span class="stars-val">${my.overall ? (+my.overall).toFixed(1) : ''}</span>
         <button class="ep-note-btn ${my.comment ? 'has' : ''}" data-note aria-label="Notes">${icon.comment}</button>
       </div>
-      <textarea class="ep-note" rows="2" maxlength="5000" placeholder="Notes on this episode…" data-comment ${a} ${my.comment ? '' : 'hidden'}>${esc(my.comment || '')}</textarea>
+      <textarea class="ep-note" rows="2" maxlength="5000" placeholder="Notes on this episode" data-comment ${a} ${my.comment ? '' : 'hidden'}>${esc(my.comment || '')}</textarea>
     </div>
     <button class="seen-btn sm ${my.seen ? 'on' : ''}" data-seen ${a} aria-pressed="${!!my.seen}" title="Mark episode as watched">${icon.check}</button>
   </div>`;
@@ -310,7 +310,7 @@ function bindDetail(art, it) {
       b.setAttribute('aria-checked', on);
     });
     save();
-    if (!quiet) toast(`Moved to ${statusLabel(it.kind, v)}`);
+    if (!quiet) toast(v === 'wishlist' ? 'Back on your wishlist' : `Marked as ${statusLabel(it.kind, v).toLowerCase()}`);
   };
 
   art.addEventListener('click', async (e) => {

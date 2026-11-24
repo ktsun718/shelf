@@ -8,8 +8,7 @@ export function renderSettings(root) {
   const st = store.settings();
   root.innerHTML = `<section class="page wrap settings">
     <header class="page-head">
-      <p class="eyebrow fade-up" style="--d:0"><i class="live-dot"></i>Shelf</p>
-      <h1 class="large-title fade-up" style="--d:1"><em>Settings</em></h1>
+      <h1 class="large-title fade-up" style="--d:0">Settings</h1>
     </header>
 
     <div class="panel reveal" data-cloud></div>
@@ -17,19 +16,19 @@ export function renderSettings(root) {
     <div class="panel reveal">
       <div class="panel-head"><h2>Display</h2></div>
       <label class="switch-row">
-        <span><b>Online scores on wishlist titles</b><small class="muted">Off keeps IMDb/TMDB scores hidden until you’ve watched it — no outside opinions before you decide. You can still peek on each title.</small></span>
+        <span><b>Online scores on wishlist titles</b><small class="muted">Off keeps IMDb/TMDB scores hidden until you’ve watched it — no outside opinions before you decide. You can still show them on each title.</small></span>
         <input type="checkbox" class="switch" data-wishscores ${st.showWishScores ? 'checked' : ''}>
       </label>
     </div>
 
     <div class="panel reveal">
       <div class="panel-head"><h2>Rating categories</h2><button class="btn btn-glass btn-xs" data-reset-cats>Reset</button></div>
-      <p class="muted">The colourful bars under “The details”. Changes apply to every title of that type.</p>
+      <p class="muted">The bars under “The details” on each title. Changes apply to every title of that type.</p>
       ${['movie', 'tv', 'book'].map((k) => `<div class="cat-edit" data-kind="${k}">
         <h3>${{ movie: 'Movies', tv: 'TV shows & seasons', book: 'Books' }[k]}</h3>
         <div class="cat-chips">
           ${st.categories[k].map((c) => `<span class="cat-chip">${esc(c)}<button data-del-cat="${esc(c)}" aria-label="Remove ${esc(c)}">${icon.close}</button></span>`).join('')}
-          <form class="cat-add" data-add-cat><input placeholder="Add…" maxlength="24" aria-label="New category"><button aria-label="Add category">${icon.plus}</button></form>
+          <form class="cat-add" data-add-cat><input placeholder="Add" maxlength="24" aria-label="New category"><button aria-label="Add category">${icon.plus}</button></form>
         </div>
       </div>`).join('')}
     </div>
@@ -123,7 +122,7 @@ function cloudPanel(needsSetup) {
         <input placeholder="One-time setup code" autocomplete="off" required data-code>
         <input type="password" placeholder="New password" autocomplete="new-password" required minlength="10" data-pass>
         <input type="password" placeholder="Type it again" autocomplete="new-password" required minlength="10" data-pass2>
-        <button class="btn btn-grad btn-sm">Create password</button>
+        <button class="btn btn-light btn-sm">Create password</button>
       </form>
       ${error ? `<p class="err">${esc(error)}</p>` : ''}`;
   }
@@ -132,7 +131,7 @@ function cloudPanel(needsSetup) {
       <form class="stack-form" data-login>
         <input type="text" value="shelf" autocomplete="username" hidden>
         <input type="password" placeholder="Password" autocomplete="current-password" required data-pass>
-        <button class="btn btn-grad btn-sm">Sign in</button>
+        <button class="btn btn-light btn-sm">Sign in</button>
       </form>
       ${error ? `<p class="err">${esc(error)}</p>` : ''}`;
   }
